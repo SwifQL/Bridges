@@ -1,5 +1,5 @@
 //
-//  Application.swift
+//  BridgesApplication.swift
 //  Bridges
 //
 //  Created by Mihael Isaev on 27.01.2020.
