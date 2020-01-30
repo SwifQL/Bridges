@@ -182,7 +182,7 @@ And yes, you can use raw strings for columns `.column("id", .uuid, .primaryKey)`
 
 Example for rating column with check constraints
 ```swift
-.column("rating", .int, .notNull, .check(\WorkerReview.$rating >= 0 && \WorkerReview.$rating <= 5))
+.column(\.$rating, .int, .notNull, .check(\WorkerReview.$rating >= 0 && \WorkerReview.$rating <= 5))
 ```
 
 Example for column with reference(foreign key) constraint
