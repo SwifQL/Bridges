@@ -13,6 +13,7 @@ public protocol AnyColumn {
     var type: SwifQL.`Type` { get }
     var `default`: ColumnDefault? { get }
     var constraints: [Constraint] { get }
+    var inputValue: Encodable? { get }
     func encode(to encoder: Encoder) throws
     func decode(from decoder: Decoder) throws
 }
@@ -25,7 +26,7 @@ public final class Column<Value>: AnyColumn, ColumnRepresentable, Encodable wher
     public let constraints: [Constraint]
     
     var outputValue: Value?
-    var inputValue: Encodable?
+    public internal(set) var inputValue: Encodable?
     
     public var column: Column<Value> { self }
     
