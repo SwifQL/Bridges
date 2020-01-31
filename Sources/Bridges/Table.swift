@@ -11,16 +11,7 @@ import SwifQL
 public typealias BridgeTable = Table
 
 public protocol Table: Tableable {
-    static var name: String { get }
-    
     init ()
-}
-
-extension Table {
-    public static var name: String { String(describing: Self.self) }
-    
-    /// See `Tableable`
-    public static var entity: String { name }
 }
 
 extension Table {

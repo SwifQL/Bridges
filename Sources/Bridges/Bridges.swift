@@ -46,7 +46,7 @@ extension SwifQLable {
 }
 
 extension KeyPath: SwifQLable, CustomStringConvertible where Root: Table, Value: ColumnRepresentable {
-    public var parts: [SwifQLPart] { Path.Table(Root.name).column(Root.key(for: self)).parts }
+    public var parts: [SwifQLPart] { Path.Table(Root.tableName).column(Root.key(for: self)).parts }
 }
 
 public protocol SQLRow {

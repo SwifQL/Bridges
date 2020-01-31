@@ -13,7 +13,7 @@ public class CreateTableBuilder<Table: BridgeTable>: SwifQLable {
         if shouldCheckIfNotExists {
             query = query.if.not.exists
         }
-        query = query[any: Path.Table(Table.name)].newColumns(columns)
+        query = query[any: Path.Table(Table.tableName)].newColumns(columns)
         return query.parts
     }
     

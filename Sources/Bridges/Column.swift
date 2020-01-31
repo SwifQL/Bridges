@@ -209,7 +209,7 @@ public struct Constraint {
     }
     
     public static func references<T: Table>(_ table: T.Type, onDelete: ReferentialAction? = nil, onUpdate: ReferentialAction? = nil) -> Constraint {
-        references(table.name, onDelete: onDelete, onUpdate: onUpdate)
+        references(table.tableName, onDelete: onDelete, onUpdate: onUpdate)
     }
     
     public static func references(_ table: String, onDelete: ReferentialAction? = nil, onUpdate: ReferentialAction? = nil) -> Constraint {

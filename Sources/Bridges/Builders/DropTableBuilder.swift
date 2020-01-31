@@ -13,7 +13,7 @@ public class DropTableBuilder<Table: BridgeTable>: SwifQLable {
         if shouldCheckIfExists {
             query = query.if.exists
         }
-        query = query[any: Path.Table(Table.name)]
+        query = query[any: Path.Table(Table.tableName)]
         return query.parts
     }
     

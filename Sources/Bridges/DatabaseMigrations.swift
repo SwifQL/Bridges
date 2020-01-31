@@ -24,7 +24,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable> {
     }
     
     struct Migrations: Table {
-        static var name: String { "migrations" }
+        static var tableName: String { "migrations" }
         
         @Column("id")
         var id: Int64
