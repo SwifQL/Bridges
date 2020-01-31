@@ -16,7 +16,7 @@ extension Table {
         }
         let keyColumnName = Self.key(for: keyColumn)
         let keyColumn = Path.Column(keyColumnName)
-        guard let keyColumnValue = items.first(where: { $0.0 == keyColumnName })?.0 else {
+        guard let keyColumnValue = items.first(where: { $0.0 == keyColumnName })?.1 else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         let query = SwifQL
