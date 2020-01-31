@@ -45,7 +45,23 @@ extension SwifQLable {
     }
 }
 
-extension KeyPath: SwifQLable, CustomStringConvertible where Root: Table, Value: ColumnRepresentable {
+extension KeyPath: SwifQLable, CustomStringConvertible, Keypathable where Root: Table, Value: ColumnRepresentable {
+    public var paths: [String] {
+        [Root.key(for: self)]
+    }
+    
+    public var shortPath: String {
+        Root.key(for: self)
+    }
+    
+    public var lastPath: String {
+        Root.key(for: self)
+    }
+    
+    public func fullPath(table: String) -> String {
+        Root.tableName
+    }
+    
     public var parts: [SwifQLPart] { Path.Table(Root.tableName).column(Root.key(for: self)).parts }
 }
 
