@@ -7,4 +7,5 @@
 
 public protocol BridgesRequest {
     var bridgesApplication: BridgesApplication { get }
+    var eventLoop: EventLoop { get }
 }

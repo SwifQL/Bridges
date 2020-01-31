@@ -9,7 +9,15 @@ import Foundation
 import Logging
 import NIO
 
-public class BridgeDatabaseMigrations<B: Bridgeable> {
+public protocol Migrator {
+    func add(_ migration: AnyMigration.Type)
+    
+    func migrate() -> EventLoopFuture<Void>
+    func revertLast() -> EventLoopFuture<Void>
+    func revertAll() -> EventLoopFuture<Void>
+}
+
+public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
     var migrations: [AnyMigration.Type] = []
     let bridge: B
     let db: DatabaseIdentifier
@@ -54,7 +62,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable> {
     }
     
     public func migrate() -> EventLoopFuture<Void> {
-        bridge.transaction(to: db) { conn in
+        bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) { conn in
             Migrations.Create.prepare(on: conn).flatMap {
                 let query = SwifQL.select(Migrations.table.*).from(Migrations.table).prepare(conn.dialect).plain
                 return conn.query(raw: query, decoding: Migrations.self).flatMap { completedMigrations in
@@ -78,7 +86,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable> {
     }
 
     public func revertLast() -> EventLoopFuture<Void> {
-        bridge.transaction(to: db) {
+        bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) {
             self._revertLast(on: $0).transform(to: ())
         }
     }
@@ -105,7 +113,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable> {
     }
     
     public func revertAll() -> EventLoopFuture<Void> {
-        bridge.transaction(to: db) { conn in
+        bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) { conn in
             let promise = conn.eventLoop.makePromise(of: Void.self)
             func revert() {
                 self._revertLast(on: conn).whenComplete { res in

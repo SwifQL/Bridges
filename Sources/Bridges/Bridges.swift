@@ -9,6 +9,11 @@ import Foundation
 import Logging
 import NIO
 
+public struct BridgeWithContext<B: AnyBridge> {
+    public let bridge: B
+    public let eventLoop: EventLoop
+}
+
 open class Bridges {
     var bridges: [String: AnyBridge] = [:]
     
@@ -20,13 +25,13 @@ open class Bridges {
         self.logger = logger
     }
     
-    public func bridge<B: AnyBridge>(to type: B.Type) -> B {
+    public func bridge<B: AnyBridge>(to type: B.Type, on eventLoop: EventLoop) -> BridgeWithContext<B> {
         let bridge = bridges[B.name] ?? B.create(eventLoopGroup: eventLoopGroup, logger: logger)
         if bridges[B.name] == nil { bridges[B.name]  = bridge }
         guard let castedBridge = bridge as? B else {
             fatalError("Unable to cast bridge to `\(B.name)`")
         }
-        return castedBridge
+        return BridgeWithContext(bridge: castedBridge, eventLoop: eventLoop)
     }
 }
 

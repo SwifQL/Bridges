@@ -22,15 +22,15 @@ You could take a look at `VaporBridges` implementation as a reference to make it
 
 ### Vapor4 + PostgreSQL
 ```swift
-.package(url: "https://github.com/SwifQL/PostgresBridge.git", from:"1.0.0-beta.1"),
-.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta.1"),
+.package(url: "https://github.com/SwifQL/PostgresBridge.git", from:"1.0.0-beta.2"),
+.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta.2"),
 .target(name: "App", dependencies: ["Vapor", "PostgresBridge", "VaporBridges"]),
 ```
 
 ### Vapor4 + MySQL
 ```swift
-.package(url: "https://github.com/SwifQL/MySQLBridge.git", from:"1.0.0-beta.1"),
-.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta.1"),
+.package(url: "https://github.com/SwifQL/MySQLBridge.git", from:"1.0.0-beta.2"),
+.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta.2"),
 .target(name: "App", dependencies: ["Vapor", "MySQLBridge", "VaporBridges"]),
 ```
 
@@ -245,21 +245,21 @@ import PostgresBridge
 
 func migrations(_ app: Application) throws {
     // create `migrations` object on your database connection
-    let migrations = app.postgres.migrations(.myDb1)
+    let migrator = app.postgres.migrator(for: .myDb1)
 
     // Enums
 
-    migrations.add(CreateEnumGender.self) // to create `Gender` enum type in db
+    migrator.add(CreateEnumGender.self) // to create `Gender` enum type in db
 
     // Models
 
-    migrations.add(CreateUser.self) // to create `User` table
+    migrator.add(CreateUser.self) // to create `User` table
 
-    // migrations.add(SomeCustomMigration.self) // could be some seed migration :)
+    // migrator.add(SomeCustomMigration.self) // could be some seed migration :)
 
-    try migrations.migrate().wait() // will run all provided migrations one by one inside a transaction
-//    try migrations.revertLast().wait() // will revert only last batch
-//    try migrations.revertAll().wait() // will revert all migrations one by one in desc order
+    try migrator.migrate().wait() // will run all provided migrations one by one inside a transaction
+//    try migrator.revertLast().wait() // will revert only last batch
+//    try migrator.revertAll().wait() // will revert all migrations one by one in desc order
 }
 ```
 then run them somewhere in the end of configure.swift

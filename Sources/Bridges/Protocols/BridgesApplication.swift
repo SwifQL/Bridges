@@ -11,4 +11,5 @@ import Logging
 public protocol BridgesApplication {
     var logger: Logger { get }
     var bridges: Bridges { get }
+    var eventLoopGroup: EventLoopGroup { get }
 }

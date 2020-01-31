@@ -12,8 +12,9 @@ import SwifQL
 
 extension Bridgeable {
     public func transaction<T>(to db: DatabaseIdentifier,
-                                  _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
-        connection(to: db) { conn in
+                                            on eventLoop: EventLoop,
+                                            _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
+        connection(to: db, on: eventLoop) { conn in
             conn.query(raw: SwifQL.begin.semicolon.prepare().plain).transform(to: conn).flatMap { conn in
                 closure(conn).flatMapError { error in
                     conn.query(raw: SwifQL.rollback.semicolon.prepare().plain).flatMapThrowing { _ in
