@@ -9,4 +9,5 @@ import Foundation
 
 public enum BridgesError: Error {
     case failedToDecodeWithReturning
+    case valueIsNilInKeyColumnUpdateIsImpossible
 }
