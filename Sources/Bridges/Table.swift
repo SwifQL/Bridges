@@ -34,15 +34,15 @@ extension Table {
     
     public init(from decoder: Decoder) throws {
         self.init()
-        let container = try decoder.container(keyedBy: _TableCodingKey.self)
+        let container = try decoder.container(keyedBy: TableCodingKey.self)
         try self.columns.forEach { label, property in
-            let decoder = ContainerDecoder(container: container, key: .string(label))
+            let decoder = TableContainerDecoder(container: container, key: .string(label))
             try property.decode(from: decoder)
         }
     }
 
     public func encode(to encoder: Encoder) throws {
-        let container = encoder.container(keyedBy: _TableCodingKey.self)
+        let container = encoder.container(keyedBy: TableCodingKey.self)
         try self.columns.forEach { label, property in
             let encoder = ContainerEncoder(container: container, key: .string(label))
             try property.encode(to: encoder)
@@ -50,7 +50,7 @@ extension Table {
     }
 }
 
-enum _TableCodingKey: CodingKey {
+enum TableCodingKey: CodingKey {
     case string(String)
     case int(Int)
     
@@ -77,9 +77,9 @@ enum _TableCodingKey: CodingKey {
     }
 }
 
-private struct ContainerDecoder: Decoder, SingleValueDecodingContainer {
-    let container: KeyedDecodingContainer<_TableCodingKey>
-    let key: _TableCodingKey
+private struct TableContainerDecoder: Decoder, SingleValueDecodingContainer {
+    let container: KeyedDecodingContainer<TableCodingKey>
+    let key: TableCodingKey
     
     var codingPath: [CodingKey] {
         self.container.codingPath
@@ -115,8 +115,8 @@ private struct ContainerDecoder: Decoder, SingleValueDecodingContainer {
 }
 
 private struct ContainerEncoder: Encoder, SingleValueEncodingContainer {
-    var container: KeyedEncodingContainer<_TableCodingKey>
-    let key: _TableCodingKey
+    var container: KeyedEncodingContainer<TableCodingKey>
+    let key: TableCodingKey
     
     var codingPath: [CodingKey] {
         self.container.codingPath
