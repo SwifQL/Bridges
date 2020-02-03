@@ -22,15 +22,15 @@ You could take a look at `VaporBridges` implementation as a reference to make it
 
 ### Vapor4 + PostgreSQL
 ```swift
-.package(url: "https://github.com/SwifQL/PostgresBridge.git", from:"1.0.0-beta.2"),
-.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta.2"),
+.package(url: "https://github.com/SwifQL/PostgresBridge.git", from:"1.0.0-beta"),
+.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta"),
 .target(name: "App", dependencies: ["Vapor", "PostgresBridge", "VaporBridges"]),
 ```
 
 ### Vapor4 + MySQL
 ```swift
-.package(url: "https://github.com/SwifQL/MySQLBridge.git", from:"1.0.0-beta.2"),
-.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta.2"),
+.package(url: "https://github.com/SwifQL/MySQLBridge.git", from:"1.0.0-beta"),
+.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta"),
 .target(name: "App", dependencies: ["Vapor", "MySQLBridge", "VaporBridges"]),
 ```
 
@@ -160,13 +160,13 @@ struct CreateUser: TableMigration {
 
     static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void> {
         createBuilder
-            .column(\.$id, .uuid, .primaryKey)
-            .column(\.$email, .text, .unique, .notNull)
-            .column(\.$name, .text, .notNull)
-            .column(\.$password, .text, .notNull)
-            .column(\.$createdAt, .timestamptz, .default(Fn.now()), .notNull)
-            .column(\.$updatedAt, .timestamptz, .notNull)
-            .column(\.$deletedAt, .timestamptz)
+            .column("id", .uuid, .primaryKey)
+            .column("email", .text, .unique, .notNull)
+            .column("name", .text, .notNull)
+            .column("password", .text, .notNull)
+            .column("createdAt", .timestamptz, .default(Fn.now()), .notNull)
+            .column("updatedAt", .timestamptz, .notNull)
+            .column("deletedAt", .timestamptz)
             .execute(on: conn)
     }
 
@@ -176,7 +176,7 @@ struct CreateUser: TableMigration {
 }
 ```
 
-And yes, you can use raw strings for columns `.column("id", .uuid, .primaryKey)`
+And yes, you can use raw strings for columns `.column(\.$id, .uuid, .primaryKey)`
 
 `.column()` is powerful, you can set name, type, default value and constraints here
 
