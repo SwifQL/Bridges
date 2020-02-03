@@ -14,6 +14,7 @@ public protocol AnyColumn {
     var `default`: ColumnDefault? { get }
     var constraints: [Constraint] { get }
     var inputValue: Encodable? { get }
+    var isChanged: Bool { get }
     func encode(to encoder: Encoder) throws
     func decode(from decoder: Decoder) throws
 }
@@ -27,6 +28,7 @@ public final class Column<Value>: AnyColumn, ColumnRepresentable, Encodable wher
     
     var outputValue: Value?
     public internal(set) var inputValue: Encodable?
+    public var isChanged: Bool = false
     
     public var column: Column<Value> { self }
     
@@ -44,6 +46,7 @@ public final class Column<Value>: AnyColumn, ColumnRepresentable, Encodable wher
         }
         set {
             self.inputValue = newValue
+            self.isChanged = true
         }
     }
     
@@ -85,6 +88,7 @@ public final class Column<Value>: AnyColumn, ColumnRepresentable, Encodable wher
         } else {
             self.wrappedValue = try container.decode(Value.self)
         }
+        self.isChanged = false
     }
 }
 
