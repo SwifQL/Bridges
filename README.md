@@ -330,6 +330,33 @@ app.postgres.transaction(to: .myDb1) { conn in
 
 Connection closes automatically.
 
+### Conveniences
+
+#### Select
+```swift
+User.select.where(\User.$email == "hello@gmail.com").execute(on: conn).first(decoding: User.self)
+```
+
+#### Insert
+```swift
+let user = User(email: "hello@gmail.com", name: "John", password: "qwerty".sha512, gender: .male)
+user.insert(on: conn)
+```
+
+#### Update
+```swift
+User.select.where(\User.$email == "hello@gmail.com").execute(on: conn).first(decoding: User.self).flatMap { user in
+    guard let user = user else { return conn.eventLoop.makeFailedFuture(...) }
+    user.password = "asdfg"
+    return user.update(on: \.$id, on: conn) // executes update just for `password` column and returns EventLoopFuture<User>
+}
+```
+
+#### Delete
+```swift
+user.delete(on: \.$id, on: conn) // executes `DELETE FROM User WHERE id=...` returns EventLoopFuture<Void>
+```
+
 ## Contributing
 
 Please feel free to contribute
