@@ -343,6 +343,14 @@ let user = User(email: "hello@gmail.com", name: "John", password: "qwerty".sha51
 user.insert(on: conn)
 ```
 
+#### Batch insert
+```swift
+let user1 = User(email: "hello@gmail.com", name: "John", password: "qwerty".sha512, gender: .male)
+let user2 = User(email: "byebye@gmail.com", name: "Amily", password: "asdfgh".sha512, gender: .female)
+let user3 = User(email: "trololo@gmail.com", name: "Trololo", password: "zxcvbn".sha512, gender: .other)
+[user1, user2, user3].batchInsert(on: conn)
+```
+
 #### Update
 ```swift
 User.select.where(\User.$email == "hello@gmail.com").execute(on: conn).first(decoding: User.self).flatMap { user in
