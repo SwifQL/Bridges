@@ -26,3 +26,44 @@ extension Table {
         }
     }
 }
+
+// MARK: Batch Insert
+
+extension Array where Element: Table {
+    public func batchInsert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        guard count > 0 else { return conn.eventLoop.future() }
+        return conn.query(sql: batchInsertQuery)
+    }
+    
+    private var batchInsertQuery: SwifQLable {
+        var data: [String: [SwifQLable]] = [:]
+        self.forEach { table in
+            table.columns.forEach { column, value in
+                let value: SwifQLable = (value.inputValue as? SwifQLable) ?? SwifQL.default
+                if var d = data[column] {
+                    d.append(value)
+                    data[column] = d
+                } else {
+                    data[column] = [value]
+                }
+            }
+        }
+        let columns = data.keys.sorted(by: { $0 > $1 })
+        var values: [[SwifQLable]] = []
+        enumerated().forEach { i, _ in
+            columns.enumerated().forEach { n, c in
+                if let v = data[c]?[i] {
+                    if values.count < i + 1 {
+                        values.append([v])
+                    } else {
+                        values[i].append(v)
+                    }
+                }
+            }
+        }
+        return SwifQL
+            .insertInto(Element.tableName, fields: columns.map { Path.Column($0) })
+            .values
+            .values(array: values)
+    }
+}
