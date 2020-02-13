@@ -9,16 +9,24 @@ import Foundation
 import NIOSSL
 
 public struct DatabaseHost {
-    public let hostname, username: String
+    public let address: () throws -> SocketAddress
+    public let username: String
     public let password: String?
-    public let port: Int
     public let tlsConfiguration: TLSConfiguration?
 
-    public init (hostname: String, username: String, password: String?, port: Int, tlsConfiguration: TLSConfiguration? = nil) {
-        self.hostname = hostname
+    public init (address: @escaping () throws -> SocketAddress, username: String, password: String?, tlsConfiguration: TLSConfiguration? = nil) {
+        self.address = address
         self.username = username
         self.password = password
-        self.port = port
+        self.tlsConfiguration = tlsConfiguration
+    }
+    
+    public init (hostname: String, port: Int, username: String, password: String?, tlsConfiguration: TLSConfiguration? = nil) {
+        self.address = {
+            try SocketAddress.makeAddressResolvingHost(hostname, port: port)
+        }
+        self.username = username
+        self.password = password
         self.tlsConfiguration = tlsConfiguration
     }
 }
