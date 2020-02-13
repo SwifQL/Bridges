@@ -176,7 +176,7 @@ struct CreateUser: TableMigration {
 }
 ```
 
-And yes, you can use raw strings for columns `.column(\.$id, .uuid, .primaryKey)`
+And yes, you can use keypaths for columns `.column(\.$id, .uuid, .primaryKey)` but it is not good for long perspective.
 
 `.column()` is powerful, you can set name, type, default value and constraints here
 
