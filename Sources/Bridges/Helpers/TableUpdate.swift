@@ -11,7 +11,14 @@ import SwifQL
 extension Table {
     public func update<Column>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection) -> EventLoopFuture<Self> where Column: ColumnRepresentable {
         var items: [(String, SwifQLable, Bool)] = columns.compactMap {
-            guard let value = $0.1.inputValue as? SwifQLable else { return nil }
+            let value: SwifQLable
+            if let v = $0.1.inputValue as? SwifQLable {
+                value = v
+            } else if let v = $0.1.inputValue as? Bool {
+                value = SwifQLBool(v)
+            } else {
+                return nil
+            }
             return ($0.0, value, $0.1.isChanged)
         }
         let keyColumnName = Self.key(for: keyColumn)
