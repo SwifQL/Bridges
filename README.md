@@ -3,7 +3,7 @@
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="MIT License">
     </a>
     <a href="https://swift.org">
-        <img src="https://img.shields.io/badge/swift-5.1-brightgreen.svg" alt="Swift 5.1">
+        <img src="https://img.shields.io/badge/swift-5.2-brightgreen.svg" alt="Swift 5.2">
     </a>
     <img src="https://img.shields.io/github/workflow/status/SwifQL/Bridges/test" alt="Github Actions">
 </p>
@@ -22,16 +22,24 @@ You could take a look at `VaporBridges` implementation as a reference to make it
 
 ### Vapor4 + PostgreSQL
 ```swift
-.package(url: "https://github.com/SwifQL/PostgresBridge.git", from:"1.0.0-beta"),
-.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta"),
-.target(name: "App", dependencies: ["Vapor", "PostgresBridge", "VaporBridges"]),
+.package(url: "https://github.com/SwifQL/PostgresBridge.git", from:"1.0.0-rc"),
+.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-rc"),
+.target(name: "App", dependencies: [
+    .product(name: "Vapor", package: "vapor"),
+    .product(name: "PostgresBridge", package: "PostgresBridge"),
+    .product(name: "VaporBridges", package: "VaporBridges")
+]),
 ```
 
 ### Vapor4 + MySQL
 ```swift
-.package(url: "https://github.com/SwifQL/MySQLBridge.git", from:"1.0.0-beta"),
-.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-beta"),
-.target(name: "App", dependencies: ["Vapor", "MySQLBridge", "VaporBridges"]),
+.package(url: "https://github.com/SwifQL/MySQLBridge.git", from:"1.0.0-rc"),
+.package(url: "https://github.com/SwifQL/VaporBridges.git", from:"1.0.0-rc"),
+.target(name: "App", dependencies: [
+    .product(name: "Vapor", package: "vapor"),
+    .product(name: "MySQLBridge", package: "MySQLBridge"),
+    .product(name: "VaporBridges", package: "VaporBridges")
+]),
 ```
 
 # Documentation

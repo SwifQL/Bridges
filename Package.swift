@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 import PackageDescription
 import Foundation
 
@@ -31,21 +31,21 @@ extension Array where Element == Dep {
 var deps: [Dep] = []
 
 // Sugary extensions for the SwiftNIO library
-deps.append("https://github.com/vapor/async-kit.git", from: "1.0.0-beta.2", targets: "AsyncKit")
+deps.append("https://github.com/vapor/async-kit.git", from: "1.0.0-rc", targets: .product(name: "AsyncKit", package: "async-kit"))
 
 // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: "NIO")
+deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: .product(name: "NIO", package: "swift-nio"))
 
 // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
-deps.append("https://github.com/apple/swift-nio-ssl.git", from: "2.0.0", targets: "NIOSSL")
+deps.append("https://github.com/apple/swift-nio-ssl.git", from: "2.0.0", targets: .product(name: "NIOSSL", package: "swift-nio-ssl"))
 
 // Swift logging API
-deps.append("https://github.com/apple/swift-log.git", from: "1.0.0", targets: "Logging")
+deps.append("https://github.com/apple/swift-log.git", from: "1.0.0", targets: .product(name: "Logging", package: "swift-log"))
 
 if localDev {
     deps.appendLocal("SwifQL", targets: "SwifQL")
 } else {
-    deps.append("https://github.com/SwifQL/SwifQL.git", from: "2.0.0-beta.1", targets: "SwifQL")
+    deps.append("https://github.com/SwifQL/SwifQL.git", from: "2.0.0-beta.1", targets: .product(name: "SwifQL", package: "SwifQL"))
 }
 
 // MARK: - Package
@@ -53,7 +53,7 @@ if localDev {
 let package = Package(
     name: "Bridges",
     platforms: [
-       .macOS(.v10_14)
+       .macOS(.v10_15)
     ],
     products: [
         .library(name: "Bridges", targets: ["Bridges"]),
@@ -61,6 +61,8 @@ let package = Package(
     dependencies: deps.map { $0.package },
     targets: [
         .target(name: "Bridges", dependencies: deps.flatMap { $0.targets }),
-        .testTarget(name: "BridgesTests", dependencies: ["Bridges"]),
+        .testTarget(name: "BridgesTests", dependencies: [
+            .target(name: "Bridges")
+        ]),
     ]
 )
