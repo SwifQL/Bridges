@@ -334,9 +334,9 @@ app.postgres.transaction(to: .myDb1) { conn in
 }
 ```
 
-### Should I close connection?
+### Should I release connection?
 
-Connection closes automatically.
+No. Connection releases automatically.
 
 ### Conveniences
 
