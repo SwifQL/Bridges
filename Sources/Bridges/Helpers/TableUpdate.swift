@@ -52,4 +52,26 @@ extension Table {
             .asterisk
         return conn.query(sql: query)
     }
+    
+    public func update<Column>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection, actions: () -> Void) -> EventLoopFuture<Self> where Column: ColumnRepresentable {
+        actions()
+        return update(on: keyColumn, on: conn)
+    }
+    
+    public func update<Column>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection, actions: (Self) -> Void) -> EventLoopFuture<Self> where Column: ColumnRepresentable {
+        actions(self)
+        return update(on: keyColumn, on: conn)
+    }
+    
+    public func update<Column, T>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection, actions: () -> EventLoopFuture<T>) -> EventLoopFuture<Self> where Column: ColumnRepresentable {
+        actions().flatMap { _ in
+            self.update(on: keyColumn, on: conn)
+        }
+    }
+    
+    public func update<Column, T>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection, actions: (Self) -> EventLoopFuture<T>) -> EventLoopFuture<Self> where Column: ColumnRepresentable {
+        actions(self).flatMap { _ in
+            self.update(on: keyColumn, on: conn)
+        }
+    }
 }
