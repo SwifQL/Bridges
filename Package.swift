@@ -31,7 +31,7 @@ extension Array where Element == Dep {
 var deps: [Dep] = []
 
 // Sugary extensions for the SwiftNIO library
-deps.append("https://github.com/vapor/async-kit.git", from: "1.0.0-rc", targets: .product(name: "AsyncKit", package: "async-kit"))
+deps.append("https://github.com/vapor/async-kit.git", from: "1.0.0", targets: .product(name: "AsyncKit", package: "async-kit"))
 
 // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
 deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: .product(name: "NIO", package: "swift-nio"))
@@ -45,7 +45,7 @@ deps.append("https://github.com/apple/swift-log.git", from: "1.0.0", targets: .p
 if localDev {
     deps.appendLocal("SwifQL", targets: "SwifQL")
 } else {
-    deps.append("https://github.com/SwifQL/SwifQL.git", from: "2.0.0-beta.1", targets: .product(name: "SwifQL", package: "SwifQL"))
+    deps.append("https://github.com/SwifQL/SwifQL.git", from: "2.0.0-beta", targets: .product(name: "SwifQL", package: "SwifQL"))
 }
 
 // MARK: - Package
