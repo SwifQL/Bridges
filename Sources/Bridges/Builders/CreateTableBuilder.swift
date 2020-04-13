@@ -13,14 +13,22 @@ public class CreateTableBuilder<Table: BridgeTable>: SwifQLable {
         if shouldCheckIfNotExists {
             query = query.if.not.exists
         }
-        query = query[any: Path.Table(Table.tableName)].newColumns(columns)
+        let table = Path.Schema(schemaName).table(Table.tableName)
+        query = query[any: table].newColumns(columns)
         return query.parts
     }
     
     var columns: [NewColumn] = []
     var shouldCheckIfNotExists = false
+    var schemaName: String?
     
-    public init () {}
+    public init (schema: Schemable.Type? = nil) {
+        self.schemaName = schema?.schemaName ?? (Table.self as? Schemable.Type)?.schemaName
+    }
+    
+    public init (schema: String) {
+        self.schemaName = schema
+    }
     
     public func column(_ newColumn: NewColumn) -> Self {
         columns.append(newColumn)
