@@ -13,6 +13,4 @@ public protocol BridgesEnum: SwifQLEnum {
 
 extension BridgesEnum {
     public typealias Enum = Self
-    
-    public static var name: String { String(describing: Self.self).lowercased() }
 }
