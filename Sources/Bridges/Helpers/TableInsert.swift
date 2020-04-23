@@ -42,6 +42,11 @@ extension Array where Element: Table {
         return conn.query(sql: batchInsertQuery)
     }
     
+//    public func batchInsertReturning(on conn: BridgeConnection) -> EventLoopFuture<[Element]> {
+//        guard count > 0 else { return conn.eventLoop.future([]) }
+//        return conn.query(sql: batchInsertQuery, decoding: Element.self)
+//    }
+    
     private var batchInsertQuery: SwifQLable {
         var data: [String: [SwifQLable]] = [:]
         self.forEach { table in

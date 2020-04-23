@@ -26,7 +26,7 @@ final class BridgesTests: XCTestCase {
         let aliasedTable = CarBrand.inSchema("mooo").as("mcb").table
         XCTAssertEqual("\(aliasedTable)", #""mooo"."CarBrand" AS "mcb""#)
         
-        let cb = SwifQLAlias("cb")
+        let cb = TableAlias("cb")
         let subQueryWithAlias = |SwifQL.select(CarBrand.table.*).from(CarBrand.table)| => cb
         XCTAssertEqual("\(subQueryWithAlias)", #"(SELECT "hello"."CarBrand".* FROM "hello"."CarBrand") as "cb""#)
         XCTAssertEqual("\(cb.day)", #""cb"."day""#)

@@ -35,12 +35,6 @@ open class Bridges {
     }
 }
 
-extension Table {
-    public static func key<Column>(for column: KeyPath<Self, Column>) -> String where Column: ColumnRepresentable {
-        Self.init()[keyPath: column].column.name
-    }
-}
-
 import SwifQL
 
 extension SwifQLable {
@@ -48,30 +42,6 @@ extension SwifQLable {
     public func execute(on conn: BridgeConnection) -> EventLoopFuture<Void> {
         conn.query(raw: prepare(conn.dialect).plain).transform(to: ())
     }
-}
-
-extension KeyPath: SwifQLable, CustomStringConvertible, Keypathable where Root: Table, Value: ColumnRepresentable {
-    public var schema: String? {
-        (Root.self as? Schemable.Type)?.schemaName
-    }
-    
-    public var table: String {
-        Root.tableName
-    }
-    
-    public var paths: [String] {
-        [Root.key(for: self)]
-    }
-    
-    public var shortPath: String {
-        Root.key(for: self)
-    }
-    
-    public var lastPath: String {
-        Root.key(for: self)
-    }
-    
-    public var parts: [SwifQLPart] { Path.Schema(schema).table(table).column(Root.key(for: self)).parts }
 }
 
 public protocol SQLRow {
