@@ -186,8 +186,7 @@ struct CreateUser: TableMigration {
     }
 }
 ```
-
-And yes, you can use keypaths for columns `.column(\.$id, .uuid, .primaryKey)` but it is not good for long perspective.
+**WARNING** Although it is possible to use keypaths for columns `.column(\.$id, .uuid, .primaryKey)` you are strongly advised to use String typed column names `.column("id", .uuid, .primaryKey)` because later when you will have a lot of migrations with column renames you should be able to run the project from scratch and all the migrations will be run one by one and they should pass. If you will use keypaths they will fail.
 
 `.column()` is powerful, you can set name, type, default value and constraints here
 
