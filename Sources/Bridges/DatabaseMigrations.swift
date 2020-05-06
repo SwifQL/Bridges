@@ -100,14 +100,14 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
                 return conn.query(raw: query, decoding: Migrations.self).flatMap { completedMigrations in
                     let batch = completedMigrations.map { $0.batch }.max() ?? 0
                     var migrations = self.migrations
-                    migrations.removeAll { m in completedMigrations.contains { $0.name == m.name } }
+                    migrations.removeAll { m in completedMigrations.contains { $0.name == m.migrationName } }
                     return migrations.map { migration in
                         {
                             migration.prepare(on: conn).flatMap {
                                 SwifQL
                                     .insertInto(self.m.table, fields: self.m.$name, self.m.$batch)
                                     .values
-                                    .values(migration.name, batch + 1)
+                                    .values(migration.migrationName, batch + 1)
                                     .execute(on: conn)
                             }
                         }
@@ -130,13 +130,13 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
                 else { return conn.eventLoop.future(false) }
             let migrationsToRevert = completedMigrations.filter { $0.batch == lastBatch }
             var migrations = self.migrations
-            migrations.removeAll { m in migrationsToRevert.contains { $0.name != m.name } }
+            migrations.removeAll { m in migrationsToRevert.contains { $0.name != m.migrationName } }
             return migrations.map { migration in
                 {
                     migration.revert(on: conn).flatMap {
                         SwifQL
                             .delete(from: self.m.table)
-                            .where(self.m.$name == migration.name)
+                            .where(self.m.$name == migration.migrationName)
                             .execute(on: conn)
                     }
                 }
