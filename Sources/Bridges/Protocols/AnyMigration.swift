@@ -8,6 +8,7 @@
 import NIO
 
 public protocol AnyMigration {
+    static var name: String { get }
     static var migrationName: String { get }
     
     static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void>
@@ -15,5 +16,6 @@ public protocol AnyMigration {
 }
 
 extension AnyMigration {
-    public static var migrationName: String { String(describing: Self.self) }
+    public static var name: String { String(describing: Self.self) }
+    public static var migrationName: String { name }
 }
