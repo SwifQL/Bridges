@@ -155,6 +155,20 @@ final class User: Table {
 }
 ```
 
+By default Bridges creates table name like class name `User`. If you want to give table custom name use `tableName` static variable to set it:
+
+```swift
+final class User: Table {
+    static var tableName: String { "users" }
+    
+    @Column("id")
+    var id: UUID
+
+    // ...
+```
+
+Above example will create `users` table for class `User`.
+
 ## Migrations
 
 ### Table
@@ -165,7 +179,7 @@ To make it easy your migration struct should conform to `TableMigration`
 struct CreateUser: TableMigration {
     /// set any custom name here
     /// otherwise it will take the name of the migration struct (`CreateUser` in this case)
-    static var name: String { "CreateUser" }
+    static var migrationName: String { "create_user_table" }
 
     typealias Table = User
 
@@ -175,6 +189,7 @@ struct CreateUser: TableMigration {
             .column("email", .text, .unique, .notNull)
             .column("name", .text, .notNull)
             .column("password", .text, .notNull)
+            .column("gender", .auto(from: Gender.self), .notNull)
             .column("createdAt", .timestamptz, .default(Fn.now()), .notNull)
             .column("updatedAt", .timestamptz, .notNull)
             .column("deletedAt", .timestamptz)
@@ -186,7 +201,10 @@ struct CreateUser: TableMigration {
     }
 }
 ```
-**WARNING** Although it is possible to use keypaths for columns `.column(\.$id, .uuid, .primaryKey)` you are strongly advised to use String typed column names `.column("id", .uuid, .primaryKey)` because later when you will have a lot of migrations with column renames you should be able to run the project from scratch and all the migrations will be run one by one and they should pass. If you will use keypaths they will fail.
+
+`migrationName` variable sets description of migration in `migrations` table after running it so Bridges knew which migrations were deployed and which need to be deployed in current batch.
+
+**WARNING:** Although it is possible to use keypaths for columns `.column(\.$id, .uuid, .primaryKey)` you are strongly advised to use String typed column names `.column("id", .uuid, .primaryKey)` because later when you will have a lot of migrations with column renames you should be able to run the project from scratch and all the migrations will be run one by one and they should pass. If you will use keypaths they will fail.
 
 `.column()` is powerful, you can set name, type, default value and constraints here
 
@@ -205,6 +223,27 @@ In examples above you can see how to use `createBuilder` and `dropBuilder`
 
 > Unfortunately `updateBuilder` haven't been implemented yet, but will be implemented very soon!
 
+Both `createBuilder` and `dropBuilder` have implemented security checks on creation and deletion of tables. Before creating a table you can force migration to check if there is no such table as you want to add to database. Same applies when you want to delete table to check if there is such table available.
+
+```swift
+struct CreateUser: TableMigration {
+    typealias Table = User
+
+    static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        createBuilder
+            .checkIfNotExists()
+            .column("id", .uuid, .primaryKey)
+            // ...
+            .execute(on: conn)
+    }
+
+    static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        dropBuilder
+            .checkIfExists()
+            .execute(on: conn)
+    }
+}
+```
 ### Enum
 
 To make it easy your migration struct should conform to `EnumMigration`
@@ -213,7 +252,7 @@ To make it easy your migration struct should conform to `EnumMigration`
 struct CreateEnumGender: EnumMigration {
     /// set any custom name here
     /// otherwise it will take the name of the migration struct (`CreateEnumGender` in this case)
-    static var name: String { "CreateEnumGender" }
+    static var migrationName: String { "CreateEnumGender" }
 
     typealias Enum = Gender
 
