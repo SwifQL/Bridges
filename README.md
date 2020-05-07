@@ -159,6 +159,8 @@ By default Bridges creates table name like class name `User`. If you want to giv
 
 ```swift
 final class User: Table {
+    /// set any custom name here
+    /// otherwise it will take the name of the table class (`User` in this case)
     static var tableName: String { "users" }
     
     @Column("id")
