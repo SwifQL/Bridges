@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DatabaseIdentifier {
+open class DatabaseIdentifier {
     public let name: String?
     public let host: DatabaseHost
     public let maxConnectionsPerEventLoop: Int
