@@ -8,7 +8,10 @@
 import SwifQL
 import NIO
 
-public protocol AnyDatabaseIdentifiable {}
+public protocol AnyDatabaseIdentifiable {
+    func all<T>(_ table: T.Type, on bridges: AnyBridgesObject) -> EventLoopFuture<[T]> where T: Table
+    func first<T>(_ table: T.Type, on bridges: AnyBridgesObject) -> EventLoopFuture<T?> where T: Table
+}
 public protocol AnyMySQLDatabaseIdentifiable: AnyDatabaseIdentifiable {}
 public protocol AnyPostgresDatabaseIdentifiable: AnyDatabaseIdentifiable {}
 
