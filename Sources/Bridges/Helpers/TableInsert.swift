@@ -12,14 +12,14 @@ extension Table {
     public func insert(on conn: BridgeConnection) -> EventLoopFuture<Self> {
         let items: [(String, SwifQLable)] = columns.compactMap {
             let value: SwifQLable
-            if let v = $0.1.inputValue as? SwifQLable {
+            if let v = $0.property.inputValue as? SwifQLable {
                 value = v
-            } else if let v = $0.1.inputValue as? Bool {
+            } else if let v = $0.property.inputValue as? Bool {
                 value = SwifQLBool(v)
             } else {
                 return nil
             }
-            return ($0.0, value)
+            return ($0.name.label, value)
         }
         let query = SwifQL
         .insertInto(Self.tableName, fields: items.map { Path.Column($0.0) })
@@ -50,13 +50,13 @@ extension Array where Element: Table {
     private var batchInsertQuery: SwifQLable {
         var data: [String: [SwifQLable]] = [:]
         self.forEach { table in
-            table.columns.forEach { column, value in
-                let value: SwifQLable = (value.inputValue as? SwifQLable) ?? SwifQL.default
-                if var d = data[column] {
+            table.columns.forEach {
+                let value: SwifQLable = ($0.property.inputValue as? SwifQLable) ?? SwifQL.default
+                if var d = data[$0.name.label] {
                     d.append(value)
-                    data[column] = d
+                    data[$0.name.label] = d
                 } else {
-                    data[column] = [value]
+                    data[$0.name.label] = [value]
                 }
             }
         }

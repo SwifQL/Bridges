@@ -12,14 +12,14 @@ extension Table {
     public func update<Column>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection) -> EventLoopFuture<Self> where Column: ColumnRepresentable {
         var items: [(String, SwifQLable, Bool)] = columns.compactMap {
             let value: SwifQLable
-            if let v = $0.1.inputValue as? SwifQLable {
+            if let v = $0.property.inputValue as? SwifQLable {
                 value = v
-            } else if let v = $0.1.inputValue as? Bool {
+            } else if let v = $0.property.inputValue as? Bool {
                 value = SwifQLBool(v)
             } else {
                 return nil
             }
-            return ($0.0, value, $0.1.isChanged)
+            return ($0.name.label, value, $0.property.isChanged)
         }
         let keyColumnName = Self.key(for: keyColumn)
         let keyColumn = Path.Column(keyColumnName)
@@ -41,8 +41,8 @@ extension Table {
     
     public func update(on conn: BridgeConnection, where predicates: SwifQLable) -> EventLoopFuture<Void> {
         let items: [(String, SwifQLable)] = columns.compactMap {
-            guard let value = $0.1.inputValue as? SwifQLable else { return nil }
-            return ($0.0, value)
+            guard let value = $0.property.inputValue as? SwifQLable else { return nil }
+            return ($0.name.label, value)
         }
         let query = SwifQL
             .update(Self.table)
