@@ -11,6 +11,7 @@ import NIO
 public protocol AnyDatabaseIdentifiable {
     func all<T>(_ table: T.Type, on bridges: AnyBridgesObject) -> EventLoopFuture<[T]> where T: Table
     func first<T>(_ table: T.Type, on bridges: AnyBridgesObject) -> EventLoopFuture<T?> where T: Table
+    func query(_ query: SwifQLable, on bridges: AnyBridgesObject) -> EventLoopFuture<[BridgesRow]>
 }
 public protocol AnyMySQLDatabaseIdentifiable: AnyDatabaseIdentifiable {}
 public protocol AnyPostgresDatabaseIdentifiable: AnyDatabaseIdentifiable {}
