@@ -50,7 +50,7 @@ extension EventLoopFuture where Value == BridgesExecutedResult {
 }
 
 extension SwifQLable {
-    public func execute(_ db: DatabaseIdentifier, on container: AnyBridgesObject) -> EventLoopFuture<BridgesExecutedResult> {
+    public func execute(on db: DatabaseIdentifier, on container: AnyBridgesObject) -> EventLoopFuture<BridgesExecutedResult> {
         guard let db = db as? AnyDatabaseIdentifiable else {
             error(container.logger)
             return container.eventLoop.makeFailedFuture(BridgesError.nonGenericDatabaseIdentifier)

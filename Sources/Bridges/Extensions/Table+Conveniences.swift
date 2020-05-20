@@ -30,7 +30,7 @@ extension Table {
         return db.first(Self.self, on: on)
     }
     
-    public static func query(_ db: DatabaseIdentifier, on container: AnyBridgesObject) -> TableQuerySingle<Self> {
+    public static func query(on db: DatabaseIdentifier, on container: AnyBridgesObject) -> TableQuerySingle<Self> {
         .init(db: db, container: container)
     }
     
