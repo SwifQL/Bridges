@@ -9,24 +9,34 @@ import NIO
 import SwifQL
 
 extension Table {
-    public func insert(on conn: BridgeConnection) -> EventLoopFuture<Self> {
-        let items: [(String, SwifQLable)] = columns.compactMap {
-            let value: SwifQLable
-            if let v = $0.property.inputValue as? SwifQLable {
-                value = v
-            } else if let v = $0.property.inputValue as? Bool {
-                value = SwifQLBool(v)
-            } else {
-                return nil
+    fileprivate func buildInsertQuery(items: Columns) -> SwifQLable {
+        SwifQL
+            .insertInto(Self.tableName, fields: items.map { Path.Column($0.0) })
+            .values
+            .values(items.map { $0.1 })
+            .returning
+            .asterisk
+    }
+    
+    // MARK: Standalone
+    
+    public func insert(
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) -> EventLoopFuture<Self> {
+        buildInsertQuery(items: allColumns())
+            .execute(on: db, on: container)
+            .all(decoding: Self.self)
+            .flatMapThrowing { rows in
+                guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
+                return row
             }
-            return ($0.name.label, value)
-        }
-        let query = SwifQL
-        .insertInto(Self.tableName, fields: items.map { Path.Column($0.0) })
-        .values
-        .values(items.map { $0.1 })
-        .returning
-        .asterisk
+    }
+    
+    // MARK: On connection
+    
+    public func insert(on conn: BridgeConnection) -> EventLoopFuture<Self> {
+        let query = buildInsertQuery(items: allColumns())
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
             guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
             return row

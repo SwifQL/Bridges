@@ -9,26 +9,39 @@ import NIO
 import SwifQL
 
 extension Table {
-    public func delete<Column>(on keyColumn: KeyPath<Self, Column>, on conn: BridgeConnection) -> EventLoopFuture<Void> where Column: ColumnRepresentable {
-        let items: [(String, SwifQLable)] = columns.compactMap {
-            let value: SwifQLable
-            if let v = $0.property.inputValue as? SwifQLable {
-                value = v
-            } else if let v = $0.property.inputValue as? Bool {
-                value = SwifQLBool(v)
-            } else {
-                return nil
-            }
-            return ($0.name.label, value)
+    fileprivate func buildDeleteQuery(items: Columns, where: SwifQLable) -> SwifQLable {
+        SwifQL
+            .delete(from: Self.table)
+            .where(`where`)
+            .returning
+            .asterisk
+    }
+    
+    // MARK: Standalone
+    
+    public func delete<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) -> EventLoopFuture<Void> {
+        guard let items = allColumns(excluding: keyColumn) else {
+            return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
-        let keyColumnName = Self.key(for: keyColumn)
-        let keyColumn = Path.Column(keyColumnName)
-        guard let keyColumnValue = items.first(where: { $0.0 == keyColumnName })?.1 else {
+        return buildDeleteQuery(items: items.0, where: items.1 == items.2)
+            .execute(on: db, on: container)
+            .transform(to: ())
+    }
+    
+    // MARK: On connection
+    
+    public func delete<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on conn: BridgeConnection
+    ) -> EventLoopFuture<Void> {
+        guard let items = allColumns(excluding: keyColumn) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
-        let query = SwifQL
-            .delete(from: Self.table)
-            .where(keyColumn == keyColumnValue)
+        let query = buildDeleteQuery(items: items.0, where: items.1 == items.2)
         return conn.query(sql: query)
     }
 }
