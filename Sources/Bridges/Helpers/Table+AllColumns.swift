@@ -13,7 +13,9 @@ extension Table {
     func allColumns() -> Columns {
         columns.compactMap {
             let value: SwifQLable
-            if let v = $0.property.inputValue as? SwifQLable {
+            if let v = $0.property.inputValue as? SwifQLPart {
+                value = SwifQLableParts(parts: [v])
+            } else if let v = $0.property.inputValue as? SwifQLable {
                 value = v
             } else if let v = $0.property.inputValue as? Bool {
                 value = SwifQLBool(v)
