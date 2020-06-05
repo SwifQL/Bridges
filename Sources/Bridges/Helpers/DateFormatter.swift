@@ -29,6 +29,11 @@ public class BridgesDateFormatter: DateFormatter {
     }
     
     override public func date(from string: String) -> Date? {
+        //just date
+        dateFormat = "yyyy-MM-dd"
+        if let result = super.date(from: string) {
+            return result
+        }
         let string = string.replacingOccurrences(of: "T", with: " ")
         //with milliseconds and without timezone
         dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"
