@@ -6,8 +6,8 @@
         <img src="https://img.shields.io/badge/swift-5.2-brightgreen.svg" alt="Swift 5.2">
     </a>
     <img src="https://img.shields.io/github/workflow/status/SwifQL/Bridges/test" alt="Github Actions">
-    <a href="https://discord.gg/m4jyt7Q">
-        <img src="https://img.shields.io/badge/COMMUNITY-SWIFT.STREAM-FD6F32.svg" alt="Swift.Stream">
+    <a href="https://discord.gg/q5wCPYv">
+        <img src="https://img.shields.io/discord/612561840765141005" alt="Swift.Stream">
     </a>
 </p>
 
