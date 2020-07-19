@@ -102,9 +102,9 @@ extension DatabaseHost {
 
 Once you configured database connections you're ready to start working with them.
 
-## Tables and Enums
+## Tables, Enums, and Structs
 
-Let's start from `Enum` and then use it in `Table`.
+Let's start from `Enum` and `Struct`, and then use them in `Table`.
 
 ### Enum
 
@@ -117,6 +117,20 @@ enum Gender: String, BridgesEnum {
     case male, female, other
 }
 ```
+
+### Struct
+
+Struct declaration is simlar to Enum: just conform it to `SwifQLCodable`
+
+```swift
+import Bridges
+
+struct AccountOptions: SwifQLCodable {
+    var twoFactorAuthEnabled: Bool
+    var lastPasswordChangeDate: Date
+}
+```
+
 
 ### Table
 
@@ -140,6 +154,9 @@ final class User: Table {
 
     @Column("gender")
     var gender: Gender
+    
+    @Column("account_options")
+    var accountOptions: AccountOptions
 
     @Column("createdAt")
     public var createdAt: Date
@@ -192,6 +209,7 @@ struct CreateUser: TableMigration {
             .column("name", .text, .notNull)
             .column("password", .text, .notNull)
             .column("gender", .auto(from: Gender.self), .notNull)
+            .column("account_options", .jsonb, .notNull)
             .column("createdAt", .timestamptz, .default(Fn.now()), .notNull)
             .column("updatedAt", .timestamptz, .notNull)
             .column("deletedAt", .timestamptz)
