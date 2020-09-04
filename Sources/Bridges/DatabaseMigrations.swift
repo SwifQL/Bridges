@@ -11,6 +11,8 @@ import NIO
 
 public protocol Migrator {
     func add(_ migration: AnyMigration.Type)
+    func add(_ migrations: AnyMigration.Type...)
+    func add(_ migrations: [AnyMigration.Type])
     
     func migrate() -> EventLoopFuture<Void>
     func revertLast() -> EventLoopFuture<Void>
