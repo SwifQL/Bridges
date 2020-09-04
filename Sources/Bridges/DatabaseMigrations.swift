@@ -27,6 +27,14 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
         migrations.append(migration)
     }
     
+    public func add(_ migrations: AnyMigration.Type...) {
+        add(migrations)
+    }
+    
+    public func add(_ migrations: [AnyMigration.Type]) {
+        self.migrations.append(contentsOf: migrations)
+    }
+    
     public init(_ bridge: B, db: DatabaseIdentifier, dedicatedSchema: Bool = false) {
         self.bridge = bridge
         self.db = db
