@@ -11,7 +11,7 @@ public class CreateEnumBuilder<Enum: BridgesEnum>: SwifQLable where Enum.RawValu
     public var parts: [SwifQLPart] {
         SwifQL
             .create
-            .type(Enum.schema, Enum.name)
+            .type((Enum.self as? Schemable.Type)?.schemaName ?? nil, Enum.name)
             .as(.enum)
             .values(values.count > 0 ? values : Enum.allCases.map { $0.rawValue })
             .semicolon

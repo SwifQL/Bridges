@@ -9,7 +9,7 @@ import SwifQL
 
 public class DropEnumBuilder<Enum: BridgesEnum>: SwifQLable {
     public var parts: [SwifQLPart] {
-        SwifQL.drop.type(Enum.schema, Enum.name).semicolon.parts
+        SwifQL.drop.type((Enum.self as? Schemable.Type)?.schemaName ?? nil, Enum.name).semicolon.parts
     }
     
     public init () {}
