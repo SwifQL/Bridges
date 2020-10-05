@@ -434,6 +434,10 @@ User.select.where(\User.$email == "hello@gmail.com").execute(on: conn).first(dec
 user.delete(on: \.$id, on: conn) // executes `DELETE FROM User WHERE id=...` returns EventLoopFuture<Void>
 ```
 
+### Other usages
+
+If you plan to use custom object's and store them as native datatype in PostgreSQL database check [PostgresBridge docs](https://github.com/SwifQL/PostgresBridge/blob/master/README.md) how to do this.
+
 ## Contributing
 
 Please feel free to contribute
