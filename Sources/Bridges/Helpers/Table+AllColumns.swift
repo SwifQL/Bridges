@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwifQL
 
 extension Table {
     typealias Columns = [(name: String, value: SwifQLable, isChanged: Bool)]
@@ -13,7 +14,11 @@ extension Table {
     func allColumns() -> Columns {
         columns.compactMap {
             let value: SwifQLable
-            if let v = $0.property.inputValue as? SwifQLPart {
+            if let v = ($0.property.inputValue as Any) as? [AnySwifQLEnum] {
+                let values = v.compactMap { $0.anyRawValue as? String }.joined(separator: ",")
+                let preparedPart = SwifQLPartSafeValue("{\(values)}")
+                value = SwifQLableParts(parts: [preparedPart])
+            } else if let v = $0.property.inputValue as? SwifQLPart {
                 value = SwifQLableParts(parts: [v])
             } else if let v = $0.property.inputValue as? SwifQLable {
                 value = v
