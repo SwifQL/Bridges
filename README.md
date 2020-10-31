@@ -108,13 +108,25 @@ Let's start from `Enum` and `Struct`, and then use them in `Table`.
 
 ### Enum
 
-Enum declaration is as simple as you can see below, just conform it to `String` and `BridgesEnum`
+Enum declaration is as simple as you can see below, just conform it to either `String` or `Int`, as well as to `BridgesEnum`
 
 ```swift
 import Bridges
 
 enum Gender: String, BridgesEnum {
     case male, female, other
+}
+```
+
+or
+
+```swift
+import Bridges
+
+enum Priority: Int, BridgesEnum {
+    case HIGH = 0 
+    case MEDIUM = 1
+    case LOW = 2
 }
 ```
 
