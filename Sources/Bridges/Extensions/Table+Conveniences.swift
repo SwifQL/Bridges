@@ -78,6 +78,12 @@ public class TableQuerySingle<T: Table>: QueryBuilderable {
             .flatMapThrowing { try $0.map { try $0.decode(model: T.self) } }
     }
     
+    public func all<CT>(decoding: CT.Type) -> EventLoopFuture<[CT]> where CT: Decodable {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return db.query(queryParts.appended(to: query), on: container)
+            .flatMapThrowing { try $0.map { try $0.decode(model: CT.self) } }
+    }
+    
     public func count() -> EventLoopFuture<Int64> {
         let query = SwifQL.select(Fn.count(T.table.*) => \CountResult.$count).from(T.table)
         return db.query(queryParts.appended(to: query), on: container)
@@ -88,6 +94,12 @@ public class TableQuerySingle<T: Table>: QueryBuilderable {
         let query = SwifQL.select(T.table.*).from(T.table)
         return db.query(queryParts.appended(to: query), on: container)
             .flatMapThrowing { try $0.first?.decode(model: T.self) }
+    }
+    
+    public func first<CT>(decoding: CT.Type) -> EventLoopFuture<CT?> where CT: Decodable {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return db.query(queryParts.appended(to: query), on: container)
+            .flatMapThrowing { try $0.first?.decode(model: CT.self) }
     }
     
     public func delete() -> EventLoopFuture<Void> {
