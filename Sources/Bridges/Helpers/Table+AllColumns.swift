@@ -32,13 +32,25 @@ extension Table {
     }
     
     func allColumns<Column: ColumnRepresentable>(
-        excluding keyColumn: KeyPath<Self, Column>
+        excluding keyColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath] = []
     ) -> (columns: Columns, columnKey: Path.Column, columnValue: SwifQLable)? {
         let items = allColumns()
         let keyColumnName = Self.key(for: keyColumn)
         guard let keyColumnValue = items.first(where: { $0.0 == keyColumnName })?.1 else {
             return nil
         }
-        return (items.filter { $0.0 != keyColumnName && $0.2 }, Path.Column(keyColumnName), keyColumnValue)
+        let excludingColumns: [String] = excluding.map { $0.lastPath } + [keyColumnName]
+        return (
+            items.filter { !excludingColumns.contains($0.0) && $0.2 },
+            Path.Column(keyColumnName),
+            keyColumnValue
+        )
+    }
+    
+    func allColumns(excluding: [KeyPathLastPath] = []) -> Columns {
+        let items = allColumns()
+        let excludingColumns: [String] = excluding.map { $0.lastPath }
+        return items.filter { !excludingColumns.contains($0.0) && $0.2 }
     }
 }
