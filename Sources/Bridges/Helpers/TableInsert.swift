@@ -94,7 +94,7 @@ extension Array where Element: Table {
         var data: [String: [SwifQLable]] = [:]
         self.forEach { table in
             table.columns.forEach {
-                let value: SwifQLable = ($0.property.inputValue as? SwifQLable) ?? SwifQL.default
+                let value = $0.property.inputValue?.swifQLable ?? SwifQL.default
                 if var d = data[$0.name.label] {
                     d.append(value)
                     data[$0.name.label] = d
