@@ -10,16 +10,29 @@ import NIO
 import SwifQL
 
 extension Table {
-    fileprivate func buildUpdateQuery(items: Columns, where: SwifQLable) -> SwifQLable {
-        SwifQL
+    fileprivate func buildUpdateQuery(items: Columns, where: SwifQLable, returning: Bool) -> SwifQLable {
+        let query = SwifQL
             .update(Self.table)
             .set[items: items.map { Path.Column($0.name) == $0.value }]
             .where(`where`)
-            .returning
-            .asterisk
+        guard returning else { return query }
+        return query.returning.asterisk
     }
     
     // MARK: Standalone
+    
+    public func updateNonReturning<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject,
+        preActions: @escaping () throws -> Void
+    ) -> EventLoopFuture<Void> {
+        container.eventLoop.future().flatMapThrowing {
+            try preActions()
+        }.flatMap {
+            self.updateNonReturning(on: keyColumn, on: db, on: container)
+        }
+    }
     
     public func update<Column: ColumnRepresentable>(
         on keyColumn: KeyPath<Self, Column>,
@@ -31,6 +44,21 @@ extension Table {
             try preActions()
         }.flatMap {
             self.update(on: keyColumn, on: db, on: container)
+        }
+    }
+    
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject,
+        preActions: @escaping (Self) throws -> Void
+    ) -> EventLoopFuture<Void> {
+        container.eventLoop.future().flatMapThrowing {
+            try preActions(self)
+        }.flatMap {
+            self.updateNonReturning(on: keyColumn, on: db, on: container)
         }
     }
     
@@ -47,6 +75,19 @@ extension Table {
         }
     }
     
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable, T>(
+        on keyColumn: KeyPath<Self, Column>,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject,
+        preActions: () -> EventLoopFuture<T>
+    ) -> EventLoopFuture<Void> {
+        preActions().flatMap { _ in
+            self.updateNonReturning(on: keyColumn, on: db, on: container)
+        }
+    }
+    
     public func update<Column: ColumnRepresentable, T>(
         on keyColumn: KeyPath<Self, Column>,
         on db: DatabaseIdentifier,
@@ -55,6 +96,19 @@ extension Table {
     ) -> EventLoopFuture<Self> {
         preActions().flatMap { _ in
             self.update(on: keyColumn, on: db, on: container)
+        }
+    }
+    
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable, T>(
+        on keyColumn: KeyPath<Self, Column>,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject,
+        preActions: (Self) -> EventLoopFuture<T>
+    ) -> EventLoopFuture<Void> {
+        preActions(self).flatMap { _ in
+            self.updateNonReturning(on: keyColumn, on: db, on: container)
         }
     }
     
@@ -67,6 +121,21 @@ extension Table {
         preActions(self).flatMap { _ in
             self.update(on: keyColumn, on: db, on: container)
         }
+    }
+    
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) -> EventLoopFuture<Void> {
+        guard let items = allColumns(excluding: keyColumn) else {
+            return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
+        }
+        return buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: false)
+            .execute(on: db, on: container)
+            .transform(to: ())
     }
     
     public func update<Column: ColumnRepresentable>(
@@ -77,7 +146,7 @@ extension Table {
         guard let items = allColumns(excluding: keyColumn) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
-        return buildUpdateQuery(items: items.0, where: items.1 == items.2)
+        return buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: true)
             .execute(on: db, on: container)
             .all(decoding: Self.self)
             .flatMapThrowing { rows in
@@ -86,12 +155,24 @@ extension Table {
             }
     }
     
+    ///
+    
+    public func updateNonReturning(
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject,
+        where predicates: SwifQLable
+    ) -> EventLoopFuture<Void> {
+        buildUpdateQuery(items: allColumns(), where: predicates, returning: false)
+            .execute(on: db, on: container)
+            .transform(to: ())
+    }
+    
     public func update(
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject,
         where predicates: SwifQLable
     ) -> EventLoopFuture<Self> {
-        buildUpdateQuery(items: allColumns(), where: predicates)
+        buildUpdateQuery(items: allColumns(), where: predicates, returning: true)
             .execute(on: db, on: container)
             .all(decoding: Self.self)
             .flatMapThrowing { rows in
@@ -102,6 +183,18 @@ extension Table {
     
     // MARK: On connection
     
+    public func updateNonReturning<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on conn: BridgeConnection,
+        preActions: @escaping () throws -> Void
+    ) -> EventLoopFuture<Void> {
+        conn.eventLoop.future().flatMapThrowing {
+            try preActions()
+        }.flatMap {
+            self.updateNonReturning(on: keyColumn, on: conn)
+        }
+    }
+    
     public func update<Column: ColumnRepresentable>(
         on keyColumn: KeyPath<Self, Column>,
         on conn: BridgeConnection,
@@ -111,6 +204,20 @@ extension Table {
             try preActions()
         }.flatMap {
             self.update(on: keyColumn, on: conn)
+        }
+    }
+    
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on conn: BridgeConnection,
+        preActions: @escaping (Self) throws -> Void
+    ) -> EventLoopFuture<Void> {
+        conn.eventLoop.future().flatMapThrowing {
+            try preActions(self)
+        }.flatMap {
+            self.updateNonReturning(on: keyColumn, on: conn)
         }
     }
     
@@ -126,6 +233,18 @@ extension Table {
         }
     }
     
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable, T>(
+        on keyColumn: KeyPath<Self, Column>,
+        on conn: BridgeConnection,
+        preActions: () -> EventLoopFuture<T>
+    ) -> EventLoopFuture<Void> {
+        preActions().flatMap { _ in
+            self.updateNonReturning(on: keyColumn, on: conn)
+        }
+    }
+    
     public func update<Column: ColumnRepresentable, T>(
         on keyColumn: KeyPath<Self, Column>,
         on conn: BridgeConnection,
@@ -133,6 +252,18 @@ extension Table {
     ) -> EventLoopFuture<Self> {
         preActions().flatMap { _ in
             self.update(on: keyColumn, on: conn)
+        }
+    }
+    
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable, T>(
+        on keyColumn: KeyPath<Self, Column>,
+        on conn: BridgeConnection,
+        preActions: (Self) -> EventLoopFuture<T>
+    ) -> EventLoopFuture<Void> {
+        preActions(self).flatMap { _ in
+            self.updateNonReturning(on: keyColumn, on: conn)
         }
     }
     
@@ -146,6 +277,19 @@ extension Table {
         }
     }
     
+    ///
+    
+    public func updateNonReturning<Column: ColumnRepresentable>(
+        on keyColumn: KeyPath<Self, Column>,
+        on conn: BridgeConnection
+    ) -> EventLoopFuture<Void> {
+        guard let items = allColumns(excluding: keyColumn) else {
+            return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
+        }
+        let query = buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: false)
+        return conn.query(sql: query)
+    }
+    
     public func update<Column: ColumnRepresentable>(
         on keyColumn: KeyPath<Self, Column>,
         on conn: BridgeConnection
@@ -153,15 +297,17 @@ extension Table {
         guard let items = allColumns(excluding: keyColumn) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
-        let query = buildUpdateQuery(items: items.0, where: items.1 == items.2)
+        let query = buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: true)
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
             guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
             return row
         }
     }
     
+    ///
+    
     public func update(on conn: BridgeConnection, where predicates: SwifQLable) -> EventLoopFuture<Void> {
-        conn.query(sql: buildUpdateQuery(items: allColumns(), where: predicates))
+        conn.query(sql: buildUpdateQuery(items: allColumns(), where: predicates, returning: false))
     }
 }
 

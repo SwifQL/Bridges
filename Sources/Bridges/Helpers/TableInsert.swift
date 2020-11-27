@@ -9,19 +9,27 @@ import NIO
 import SwifQL
 
 extension Table {
-    fileprivate func buildInsertQuery(schema: String?, items: Columns) -> SwifQLable {
-        SwifQL
+    fileprivate func buildInsertQuery(schema: String?, items: Columns, returning: Bool) -> SwifQLable {
+        let query = SwifQL
             .insertInto(
                 Path.Schema(schema).table(Self.tableName),
                 fields: items.map { Path.Column($0.0) }
             )
             .values
             .values(items.map { $0.1 })
-            .returning
-            .asterisk
+        guard returning else { return query }
+        return query.returning.asterisk
     }
     
     // MARK: Standalone
+    
+    public func insertNonReturning(
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) -> EventLoopFuture<Void> {
+        _insertNonReturning(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: db, on: container)
+    }
     
     public func insert(
         inSchema schema: Schemable.Type? = nil,
@@ -29,6 +37,16 @@ extension Table {
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Self> {
         _insert(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: db, on: container)
+    }
+    
+    ///
+    
+    public func insertNonReturning(
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) -> EventLoopFuture<Void> {
+        _insertNonReturning(schema: schema, on: db, on: container)
     }
     
     public func insert(
@@ -39,12 +57,24 @@ extension Table {
         _insert(schema: schema, on: db, on: container)
     }
     
+    ///
+    
+    private func _insertNonReturning(
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) -> EventLoopFuture<Void> {
+        buildInsertQuery(schema: schema, items: allColumns(), returning: false)
+            .execute(on: db, on: container)
+            .transform(to: ())
+    }
+    
     private func _insert(
         schema: String?,
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Self> {
-        buildInsertQuery(schema: schema, items: allColumns())
+        buildInsertQuery(schema: schema, items: allColumns(), returning: true)
             .execute(on: db, on: container)
             .all(decoding: Self.self)
             .flatMapThrowing { rows in
@@ -55,16 +85,33 @@ extension Table {
     
     // MARK: On connection
     
+    public func insertNonReturning(inSchema schema: Schemable.Type? = nil, on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        _insertNonReturning(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: conn)
+    }
+    
     public func insert(inSchema schema: Schemable.Type? = nil, on conn: BridgeConnection) -> EventLoopFuture<Self> {
         _insert(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: conn)
+    }
+    
+    ///
+    
+    public func insertNonReturning(inSchema schema: String, on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        _insertNonReturning(schema: schema, on: conn)
     }
     
     public func insert(inSchema schema: String, on conn: BridgeConnection) -> EventLoopFuture<Self> {
         _insert(schema: schema, on: conn)
     }
     
+    ///
+    
+    private func _insertNonReturning(schema: String?, on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        let query = buildInsertQuery(schema: schema, items: allColumns(), returning: false)
+        return conn.query(sql: query)
+    }
+    
     private func _insert(schema: String?, on conn: BridgeConnection) -> EventLoopFuture<Self> {
-        let query = buildInsertQuery(schema: schema, items: allColumns())
+        let query = buildInsertQuery(schema: schema, items: allColumns(), returning: true)
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
             guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
             return row
@@ -84,11 +131,6 @@ extension Array where Element: Table {
         guard count > 0 else { return conn.eventLoop.future() }
         return conn.query(sql: batchInsertQuery(schema: schema))
     }
-    
-//    public func batchInsertReturning(on conn: BridgeConnection) -> EventLoopFuture<[Element]> {
-//        guard count > 0 else { return conn.eventLoop.future([]) }
-//        return conn.query(sql: batchInsertQuery, decoding: Element.self)
-//    }
     
     private func batchInsertQuery(schema: String?) -> SwifQLable {
         var data: [String: [SwifQLable]] = [:]
