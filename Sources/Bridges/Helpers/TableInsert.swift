@@ -135,13 +135,13 @@ extension Array where Element: Table {
     private func batchInsertQuery(schema: String?) -> SwifQLable {
         var data: [String: [SwifQLable]] = [:]
         self.forEach { table in
-            table.columns.forEach {
-                let value = $0.property.inputValue?.swifQLable ?? SwifQL.default
-                if var d = data[$0.name.label] {
+            table.allColumns().forEach {
+                let value = $0.value
+                if var d = data[$0.name] {
                     d.append(value)
-                    data[$0.name.label] = d
+                    data[$0.name] = d
                 } else {
-                    data[$0.name.label] = [value]
+                    data[$0.name] = [value]
                 }
             }
         }
