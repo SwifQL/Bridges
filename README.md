@@ -124,9 +124,9 @@ or
 import Bridges
 
 enum Priority: Int, BridgesEnum {
-    case HIGH = 0 
-    case MEDIUM = 1
-    case LOW = 2
+    case high = 0
+    case medium = 1
+    case low = 2
 }
 ```
 
@@ -166,7 +166,7 @@ final class User: Table {
 
     @Column("gender")
     var gender: Gender
-    
+
     @Column("account_options")
     var accountOptions: AccountOptions
 
@@ -191,7 +191,7 @@ final class User: Table {
     /// set any custom name here
     /// otherwise it will take the name of the table class (`User` in this case)
     static var tableName: String { "users" }
-    
+
     @Column("id")
     var id: UUID
 
@@ -253,8 +253,6 @@ Also I should say that in `TableMigration` we have `createBuilder`, `updateBuild
 
 In examples above you can see how to use `createBuilder` and `dropBuilder`
 
-> Unfortunately `updateBuilder` haven't been implemented yet, but will be implemented very soon!
-
 Both `createBuilder` and `dropBuilder` have implemented security checks on creation and deletion of tables. Before creating a table you can force migration to check if there is no such table as you want to add to database. Same applies when you want to delete table to check if there is such table available.
 
 ```swift
@@ -276,6 +274,57 @@ struct CreateUser: TableMigration {
     }
 }
 ```
+
+To update a table you could use `updateBuilder`
+
+```swift
+struct UpdateUser: TableMigration {
+    typealias Table = User
+
+    static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        updateBuilder
+            // adds a check with constraint or expression
+            .addCheck(...)
+            // you could add new column same way as with `createBuilder`
+            .addColumn(...)
+            // adds foreign key
+            .addForeignKey(...)
+            // adds primary key to one or more columns
+            .addPrimaryKey(...)
+            // adds unique constraint to one or more columns
+            .addUnique(...)
+            // creates index
+            .createIndex(...)
+            // drops column
+            .dropColumn(...)
+            // drops default value at specified column
+            .dropDefault(...)
+            // drops index by its name
+            .dropIndex(...)
+            // drops constraint by its name
+            .dropConstraint(...)
+            // drops `not null` mark at specified column
+            .dropNotNull(...)
+            // renames column
+            .renameColumn(...)
+            // renames table
+            .renameTable(...)
+            // set default value for specified column
+            .setDefault(...)
+            // mark column as `not null`
+            .setNotNull(...)
+            // ...
+            .execute(on: conn)
+    }
+
+    static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        updateBuilder
+            // use update builder to revert updates as well
+            .execute(on: conn)
+    }
+}
+```
+
 ### Enum
 
 To make it easy your migration struct should conform to `EnumMigration`
