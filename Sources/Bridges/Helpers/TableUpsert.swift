@@ -27,6 +27,8 @@ extension Table {
             .on.conflict(conflictColumn).do
         if updateItems.count > 0 {
             query = query.update.set[items: updateItems.map { Path.Column($0.name) == $0.value }]
+        } else if let column = insertionItems.first(where: { $0.name == conflictColumn.lastPath }) {
+            query = query.update.set[items: [Path.Column(column.name) == column.value]]
         } else {
             query = query.nothing
         }
