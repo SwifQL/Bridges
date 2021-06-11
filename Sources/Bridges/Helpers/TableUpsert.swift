@@ -17,7 +17,7 @@ extension Table {
         conflictColumn: Path.Column,
         returning: Bool
     ) -> SwifQLable {
-        let query = SwifQL
+        var query = SwifQL
             .insertInto(
                 Path.Schema(schema).table(Self.tableName),
                 fields: insertionItems.map { Path.Column($0.0) }
@@ -25,8 +25,11 @@ extension Table {
             .values
             .values(insertionItems.map { $0.1 })
             .on.conflict(conflictColumn).do
-            .update
-            .set[items: updateItems.map { Path.Column($0.name) == $0.value }]
+        if updateItems.count > 0 {
+            query = query.update.set[items: updateItems.map { Path.Column($0.name) == $0.value }]
+        } else {
+            query = query.nothing
+        }
         guard returning else { return query }
         return query.returning.asterisk
     }
