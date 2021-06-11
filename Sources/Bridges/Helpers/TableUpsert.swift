@@ -356,7 +356,7 @@ extension Table {
         .execute(on: db, on: container)
         .all(decoding: Self.self)
         .flatMapThrowing { rows in
-            guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
+            guard let row = rows.first else { return self }
             return row
         }
     }
@@ -499,7 +499,7 @@ extension Table {
             returning: true
         )
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
-            guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
+            guard let row = rows.first else { return self }
             return row
         }
     }
@@ -636,7 +636,7 @@ extension Table {
             returning: true
         )
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
-            guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
+            guard let row = rows.first else { return self }
             return row
         }
     }
