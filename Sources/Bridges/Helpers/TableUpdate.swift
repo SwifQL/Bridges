@@ -133,6 +133,10 @@ extension Table {
         guard let items = allColumns(excluding: keyColumn) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
+        guard items.0.count > 0 else {
+            container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
+            return container.eventLoop.makeSucceededVoidFuture()
+        }
         return buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: false)
             .execute(on: db, on: container)
             .transform(to: ())
@@ -145,6 +149,10 @@ extension Table {
     ) -> EventLoopFuture<Self> {
         guard let items = allColumns(excluding: keyColumn) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
+        }
+        guard items.0.count > 0 else {
+            container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
+            return container.eventLoop.makeSucceededFuture(self)
         }
         return buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: true)
             .execute(on: db, on: container)
@@ -162,7 +170,12 @@ extension Table {
         on container: AnyBridgesObject,
         where predicates: SwifQLable
     ) -> EventLoopFuture<Void> {
-        buildUpdateQuery(items: allColumns(), where: predicates, returning: false)
+        let items = allColumns()
+        guard items.count > 0 else {
+            container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
+            return container.eventLoop.makeSucceededVoidFuture()
+        }
+        return buildUpdateQuery(items: items, where: predicates, returning: false)
             .execute(on: db, on: container)
             .transform(to: ())
     }
@@ -172,7 +185,12 @@ extension Table {
         on container: AnyBridgesObject,
         where predicates: SwifQLable
     ) -> EventLoopFuture<Self> {
-        buildUpdateQuery(items: allColumns(), where: predicates, returning: true)
+        let items = allColumns()
+        guard items.count > 0 else {
+            container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
+            return container.eventLoop.makeSucceededFuture(self)
+        }
+        return buildUpdateQuery(items: items, where: predicates, returning: true)
             .execute(on: db, on: container)
             .all(decoding: Self.self)
             .flatMapThrowing { rows in
@@ -286,6 +304,10 @@ extension Table {
         guard let items = allColumns(excluding: keyColumn) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
+        guard items.0.count > 0 else {
+            conn.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
+            return conn.eventLoop.makeSucceededVoidFuture()
+        }
         let query = buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: false)
         return conn.query(sql: query)
     }
@@ -296,6 +318,10 @@ extension Table {
     ) -> EventLoopFuture<Self> {
         guard let items = allColumns(excluding: keyColumn) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
+        }
+        guard items.0.count > 0 else {
+            conn.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
+            return conn.eventLoop.makeSucceededFuture(self)
         }
         let query = buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: true)
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
