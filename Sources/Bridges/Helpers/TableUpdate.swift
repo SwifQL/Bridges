@@ -130,7 +130,7 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Void> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: container.logger) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         guard items.0.count > 0 else {
@@ -147,7 +147,7 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Self> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: container.logger) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         guard items.0.count > 0 else {
@@ -170,7 +170,7 @@ extension Table {
         on container: AnyBridgesObject,
         where predicates: SwifQLable
     ) -> EventLoopFuture<Void> {
-        let items = allColumns()
+        let items = allColumns(logger: container.logger)
         guard items.count > 0 else {
             container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
             return container.eventLoop.makeSucceededVoidFuture()
@@ -185,7 +185,7 @@ extension Table {
         on container: AnyBridgesObject,
         where predicates: SwifQLable
     ) -> EventLoopFuture<Self> {
-        let items = allColumns()
+        let items = allColumns(logger: container.logger)
         guard items.count > 0 else {
             container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
             return container.eventLoop.makeSucceededFuture(self)
@@ -301,7 +301,7 @@ extension Table {
         on keyColumn: KeyPath<Self, Column>,
         on conn: BridgeConnection
     ) -> EventLoopFuture<Void> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: conn.logger) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         guard items.0.count > 0 else {
@@ -316,7 +316,7 @@ extension Table {
         on keyColumn: KeyPath<Self, Column>,
         on conn: BridgeConnection
     ) -> EventLoopFuture<Self> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: conn.logger) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         guard items.0.count > 0 else {
@@ -333,7 +333,7 @@ extension Table {
     ///
     
     public func update(on conn: BridgeConnection, where predicates: SwifQLable) -> EventLoopFuture<Void> {
-        conn.query(sql: buildUpdateQuery(items: allColumns(), where: predicates, returning: false))
+        conn.query(sql: buildUpdateQuery(items: allColumns(logger: conn.logger), where: predicates, returning: false))
     }
 }
 

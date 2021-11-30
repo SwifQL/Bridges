@@ -24,7 +24,7 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Void> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: container.logger) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         return buildDeleteQuery(items: items.0, where: items.1 == items.2, returning: false)
@@ -37,7 +37,7 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Self> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: container.logger) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         return buildDeleteQuery(items: items.0, where: items.1 == items.2, returning: true)
@@ -55,7 +55,7 @@ extension Table {
         on keyColumn: KeyPath<Self, Column>,
         on conn: BridgeConnection
     ) -> EventLoopFuture<Void> {
-        guard let items = allColumns(excluding: keyColumn) else {
+        guard let items = allColumns(excluding: keyColumn, logger: conn.logger) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         let query = buildDeleteQuery(items: items.0, where: items.1 == items.2, returning: false)

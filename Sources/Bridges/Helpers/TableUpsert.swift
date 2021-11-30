@@ -174,12 +174,12 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Void> {
-        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding) else {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: container.logger) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         return buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
+            insertionItems: allColumns(logger: container.logger),
             updateItems: updateItems.0,
             conflictColumn: updateItems.1,
             returning: false
@@ -195,12 +195,12 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Self> {
-        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding) else {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: container.logger) else {
             return container.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         return buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
+            insertionItems: allColumns(logger: container.logger),
             updateItems: updateItems.0,
             conflictColumn: updateItems.1,
             returning: true
@@ -332,8 +332,8 @@ extension Table {
     ) -> EventLoopFuture<Void> {
         buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
-            updateItems: allColumns(excluding: excluding),
+            insertionItems: allColumns(logger: container.logger),
+            updateItems: allColumns(excluding: excluding, logger: container.logger),
             conflictConstraint: conflictConstraint,
             returning: false
         )
@@ -350,8 +350,8 @@ extension Table {
     ) -> EventLoopFuture<Self> {
         buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
-            updateItems: allColumns(excluding: excluding),
+            insertionItems: allColumns(logger: container.logger),
+            updateItems: allColumns(excluding: excluding, logger: container.logger),
             conflictConstraint: conflictConstraint,
             returning: true
         )
@@ -471,12 +471,12 @@ extension Table {
         schema: String?,
         on conn: BridgeConnection
     ) -> EventLoopFuture<Void> {
-        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding) else {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: conn.logger) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         let query = buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
+            insertionItems: allColumns(logger: conn.logger),
             updateItems: updateItems.0,
             conflictColumn: updateItems.1,
             returning: false
@@ -490,12 +490,12 @@ extension Table {
         schema: String?,
         on conn: BridgeConnection
     ) -> EventLoopFuture<Self> {
-        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding) else {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: conn.logger) else {
             return conn.eventLoop.makeFailedFuture(BridgesError.valueIsNilInKeyColumnUpdateIsImpossible)
         }
         let query = buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
+            insertionItems: allColumns(logger: conn.logger),
             updateItems: updateItems.0,
             conflictColumn: updateItems.1,
             returning: true
@@ -616,8 +616,8 @@ extension Table {
     ) -> EventLoopFuture<Void> {
         let query = buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
-            updateItems: allColumns(excluding: excluding),
+            insertionItems: allColumns(logger: conn.logger),
+            updateItems: allColumns(excluding: excluding, logger: conn.logger),
             conflictConstraint: conflictConstraint,
             returning: false
         )
@@ -632,8 +632,8 @@ extension Table {
     ) -> EventLoopFuture<Self> {
         let query = buildUpsertQuery(
             schema: schema,
-            insertionItems: allColumns(),
-            updateItems: allColumns(excluding: excluding),
+            insertionItems: allColumns(logger: conn.logger),
+            updateItems: allColumns(excluding: excluding, logger: conn.logger),
             conflictConstraint: conflictConstraint,
             returning: true
         )

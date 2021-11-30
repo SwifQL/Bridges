@@ -64,7 +64,7 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Void> {
-        buildInsertQuery(schema: schema, items: allColumns(), returning: false)
+        buildInsertQuery(schema: schema, items: allColumns(logger: container.logger), returning: false)
             .execute(on: db, on: container)
             .transform(to: ())
     }
@@ -74,7 +74,7 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) -> EventLoopFuture<Self> {
-        buildInsertQuery(schema: schema, items: allColumns(), returning: true)
+        buildInsertQuery(schema: schema, items: allColumns(logger: container.logger), returning: true)
             .execute(on: db, on: container)
             .all(decoding: Self.self)
             .flatMapThrowing { rows in
@@ -106,12 +106,12 @@ extension Table {
     ///
     
     private func _insertNonReturning(schema: String?, on conn: BridgeConnection) -> EventLoopFuture<Void> {
-        let query = buildInsertQuery(schema: schema, items: allColumns(), returning: false)
+        let query = buildInsertQuery(schema: schema, items: allColumns(logger: conn.logger), returning: false)
         return conn.query(sql: query)
     }
     
     private func _insert(schema: String?, on conn: BridgeConnection) -> EventLoopFuture<Self> {
-        let query = buildInsertQuery(schema: schema, items: allColumns(), returning: true)
+        let query = buildInsertQuery(schema: schema, items: allColumns(logger: conn.logger), returning: true)
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
             guard let row = rows.first else { throw BridgesError.failedToDecodeWithReturning }
             return row
