@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Array where Element == (() -> EventLoopFuture<Void>) {
+public extension Array where Element == (() -> EventLoopFuture<Void>) {
     func flatten(on eventLoop: EventLoop) -> EventLoopFuture<Void> {
         let promise = eventLoop.makePromise(of: Void.self)
         
@@ -34,5 +34,15 @@ extension Array where Element == (() -> EventLoopFuture<Void>) {
         }
         
         return promise.futureResult
+    }
+}
+
+public extension Array where Element == (() async throws -> Void) {
+    
+    func flatten() async throws {
+        var iterator = self.makeIterator()
+        while let item = iterator.next() {
+            try await item()
+        }
     }
 }

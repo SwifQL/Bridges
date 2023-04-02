@@ -13,6 +13,9 @@ public protocol AnyMigration {
     
     static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void>
     static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void>
+    
+    static func prepare(on conn: BridgeConnection) async throws
+    static func revert(on conn: BridgeConnection) async throws
 }
 
 extension AnyMigration {

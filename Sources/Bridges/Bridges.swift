@@ -42,6 +42,10 @@ extension SwifQLable {
     public func execute(on conn: BridgeConnection) -> EventLoopFuture<Void> {
         conn.query(raw: prepare(conn.dialect).plain).transform(to: ())
     }
+    
+    public func execute(on conn: BridgeConnection) async throws {
+        try await conn.query(raw: prepare(conn.dialect).plain)
+    }
 }
 
 public protocol SQLRow {

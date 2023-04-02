@@ -12,8 +12,8 @@ import SwifQL
 
 extension Bridgeable {
     public func transaction<T>(to db: DatabaseIdentifier,
-                                            on eventLoop: EventLoop,
-                                            _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
+                               on eventLoop: EventLoop,
+                               _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
         connection(to: db, on: eventLoop) { conn in
             conn.query(raw: SwifQL.begin.semicolon.prepare().plain).transform(to: conn).flatMap { conn in
                 closure(conn).flatMapError { error in
@@ -23,6 +23,23 @@ extension Bridgeable {
                 }.flatMap { v in
                     conn.query(raw: SwifQL.commit.semicolon.prepare().plain).transform(to: v)
                 }
+            }
+        }
+    }
+    
+    public func transaction<T>(to db: DatabaseIdentifier,
+                               on eventLoop: EventLoop,
+                               _ closure: @escaping (Connection) async throws -> T
+    ) async throws -> T {
+        try await connection(to: db, on: eventLoop) { conn in
+            try await conn.query(raw: SwifQL.begin.semicolon.prepare().plain)
+            do {
+                let result = try await closure(conn)
+                try await conn.query(raw: SwifQL.commit.semicolon.prepare().plain)
+                return result
+            } catch {
+                try await conn.query(raw: SwifQL.rollback.semicolon.prepare().plain)
+                throw error
             }
         }
     }

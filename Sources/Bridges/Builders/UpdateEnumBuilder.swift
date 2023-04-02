@@ -32,4 +32,10 @@ public class UpdateEnumBuilder<Enum: BridgesEnum> where Enum.RawValue == String 
             { action.execute(on: conn) }
         }.flatten(on: conn.eventLoop)
     }
+    
+    public func execute(on conn: BridgeConnection) async throws {
+        try await actions.map { action in
+            { try await action.execute(on: conn) }
+        }.flatten()
+    }
 }
