@@ -261,7 +261,6 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
     
     public func revertAll() async throws {
         try await bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) { conn in
-            let promise = conn.eventLoop.makePromise(of: Void.self)
             func revert() async throws {
                 let reverted = try await self._revertLast(on: conn)
                 if reverted {

@@ -912,14 +912,13 @@ extension Table {
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject
     ) async throws {
-        try await buildUpsertQuery(
+        _ = try await buildUpsertQuery(
             schema: schema,
             insertionItems: allColumns(logger: container.logger),
             updateItems: allColumns(excluding: excluding, logger: container.logger),
             conflictConstraint: conflictConstraint,
             returning: false
-        )
-        .execute(on: db, on: container)
+        ).execute(on: db, on: container)
     }
     
     private func _upsert(
