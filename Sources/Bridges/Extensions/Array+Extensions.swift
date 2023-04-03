@@ -9,7 +9,7 @@ import Foundation
 
 public extension Array {
     
-    func map<T>(_ handler: @Sendable @escaping (Element) async throws -> T) async throws -> [T] {
+    func map<T>(_ handler: @Sendable @escaping (Element) async throws -> T) async throws -> [T] where Element == BridgesRow {
         try await Task {
             var result: [T] = .init()
             for item in self {
