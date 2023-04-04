@@ -217,18 +217,16 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
             
             let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
             let completedMigrations = try await conn.query(raw: query, decoding: Migrations.self)
-            let batch = try await completedMigrations.map { $0.batch }.max() ?? 0
+            let batch = completedMigrations.map { $0.batch }.max() ?? 0
             var migrations = self.migrations
             migrations.removeAll { m in completedMigrations.contains { $0.name == m.migrationName } }
-            _ = try await migrations.map { migration in
-                {
-                    try await migration.prepare(on: conn)
-                    try await SwifQL
-                        .insertInto(self.m.table, fields: self.m.$name, self.m.$batch)
-                        .values
-                        .values(migration.migrationName, batch + 1)
-                        .execute(on: conn)
-                }
+            for migration in migrations {
+                try await migration.prepare(on: conn)
+                try await SwifQL
+                    .insertInto(self.m.table, fields: self.m.$name, self.m.$batch)
+                    .values
+                    .values(migration.migrationName, batch + 1)
+                    .execute(on: conn)
             }
         }
     }
@@ -243,18 +241,16 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
         let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
         let completedMigrations = try await conn.query(raw: query, decoding: Migrations.self)
         
-        guard let lastBatch = try await completedMigrations.map({ $0.batch }).max() else { return false }
+        guard let lastBatch = completedMigrations.map({ $0.batch }).max() else { return false }
         let migrationsToRevert = completedMigrations.filter { $0.batch == lastBatch }
         var migrations = self.migrations
         migrations.removeAll { m in migrationsToRevert.contains { $0.name != m.migrationName } }
-        _ = try await migrations.map { migration in
-            {
-                try await migration.revert(on: conn)
-                try await SwifQL
-                    .delete(from: self.m.table)
-                    .where(self.m.$name == migration.migrationName)
-                    .execute(on: conn)
-            }
+        for migration in migrations {
+            try await migration.revert(on: conn)
+            try await SwifQL
+                .delete(from: self.m.table)
+                .where(self.m.$name == migration.migrationName)
+                .execute(on: conn)
         }
         return true
     }
