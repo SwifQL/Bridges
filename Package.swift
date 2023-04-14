@@ -45,7 +45,7 @@ deps.append("https://github.com/apple/swift-log.git", from: "1.0.0", targets: .p
 if localDev {
     deps.appendLocal("SwifQL", targets: "SwifQL")
 } else {
-    deps.append("https://github.com/SwifQL/SwifQL.git", from: "2.0.0-beta", targets: .product(name: "SwifQL", package: "SwifQL"))
+    deps.append("https://github.com/nerzh/SwifQL.git", .branchItem("master"), targets: .product(name: "SwifQL", package: "SwifQL"))
 }
 
 // MARK: - Package
