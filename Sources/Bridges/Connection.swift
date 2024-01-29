@@ -19,4 +19,9 @@ public protocol BridgeConnection {
     func query(sql: SwifQLable) -> EventLoopFuture<Void>
     func query<V: Decodable>(raw: String, decoding type: V.Type) -> EventLoopFuture<[V]>
     func query<V: Decodable>(sql: SwifQLable, decoding type: V.Type) -> EventLoopFuture<[V]>
+    
+    func query(raw: String) async throws
+    func query(sql: SwifQLable) async throws
+    func query<V: Decodable>(raw: String, decoding type: V.Type) async throws -> [V]
+    func query<V: Decodable>(sql: SwifQLable, decoding type: V.Type) async throws -> [V]
 }

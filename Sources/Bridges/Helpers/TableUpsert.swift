@@ -642,4 +642,578 @@ extension Table {
             return row
         }
     }
+    
+    ///ASYNC
+    
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    ///
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    ///
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    ///
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    ///
+    
+    private func _upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: container.logger) else {
+            throw BridgesError.valueIsNilInKeyColumnUpdateIsImpossible
+        }
+        _ = try await buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: container.logger),
+            updateItems: updateItems.0,
+            conflictColumn: updateItems.1,
+            returning: false
+        )
+        .execute(on: db, on: container)
+    }
+    
+    private func _upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: container.logger) else {
+            throw BridgesError.valueIsNilInKeyColumnUpdateIsImpossible
+        }
+        return try await buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: container.logger),
+            updateItems: updateItems.0,
+            conflictColumn: updateItems.1,
+            returning: true
+        )
+        .execute(on: db, on: container)
+        .all(decoding: Self.self).first ?? self
+    }
+    
+    // MARK: Standalone, conflict constraint
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    ///
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: db,
+            on: container)
+    }
+    
+    ///
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    ///
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _upsertNonReturning(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await _upsert(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: db, on: container)
+    }
+    
+    ///
+    
+    private func _upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        _ = try await buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: container.logger),
+            updateItems: allColumns(excluding: excluding, logger: container.logger),
+            conflictConstraint: conflictConstraint,
+            returning: false
+        ).execute(on: db, on: container)
+    }
+    
+    private func _upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        try await buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: container.logger),
+            updateItems: allColumns(excluding: excluding, logger: container.logger),
+            conflictConstraint: conflictConstraint,
+            returning: true
+        )
+        .execute(on: db, on: container)
+        .all(decoding: Self.self).first ?? self
+    }
+    
+    // MARK: On connection, conflict column
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    ///
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(
+            conflictColumn: conflictColumn,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    ///
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    ///
+    
+    public func upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    public func upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(conflictColumn: conflictColumn, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    ///
+    
+    private func _upsertNonReturning<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on conn: BridgeConnection
+    ) async throws {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: conn.logger) else {
+            throw BridgesError.valueIsNilInKeyColumnUpdateIsImpossible
+        }
+        let query = buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: conn.logger),
+            updateItems: updateItems.0,
+            conflictColumn: updateItems.1,
+            returning: false
+        )
+        return try await conn.query(sql: query)
+    }
+    
+    private func _upsert<Column: ColumnRepresentable>(
+        conflictColumn: KeyPath<Self, Column>,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        guard let updateItems = allColumns(excluding: conflictColumn, excluding: excluding, logger: conn.logger) else {
+            throw BridgesError.valueIsNilInKeyColumnUpdateIsImpossible
+        }
+        let query = buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: conn.logger),
+            updateItems: updateItems.0,
+            conflictColumn: updateItems.1,
+            returning: true
+        )
+        return try await conn.query(sql: query, decoding: Self.self).first ?? self
+    }
+    
+    // MARK: On connection, conflict constraint
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    ///
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: Schemable.Type? = nil,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(
+            conflictConstraint: conflictConstraint,
+            excluding: excluding,
+            schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName,
+            on: conn
+        )
+    }
+    
+    ///
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: KeyPathLastPath...,
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    ///
+    
+    public func upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws {
+        try await _upsertNonReturning(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    public func upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        inSchema schema: String,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        try await _upsert(conflictConstraint: conflictConstraint, excluding: excluding, schema: schema, on: conn)
+    }
+    
+    ///
+    
+    private func _upsertNonReturning(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on conn: BridgeConnection
+    ) async throws {
+        let query = buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: conn.logger),
+            updateItems: allColumns(excluding: excluding, logger: conn.logger),
+            conflictConstraint: conflictConstraint,
+            returning: false
+        )
+        try await conn.query(sql: query)
+    }
+    
+    private func _upsert(
+        conflictConstraint: KeyPathLastPath,
+        excluding: [KeyPathLastPath],
+        schema: String?,
+        on conn: BridgeConnection
+    ) async throws -> Self {
+        let query = buildUpsertQuery(
+            schema: schema,
+            insertionItems: allColumns(logger: conn.logger),
+            updateItems: allColumns(excluding: excluding, logger: conn.logger),
+            conflictConstraint: conflictConstraint,
+            returning: true
+        )
+        guard let first = try await conn.query(sql: query, decoding: Self.self).first else {
+            return self
+        }
+        return first
+    }
+
 }

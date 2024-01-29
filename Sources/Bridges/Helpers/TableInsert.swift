@@ -117,6 +117,100 @@ extension Table {
             return row
         }
     }
+    
+    public func insertNonReturning(
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        try await _insertNonReturning(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: db, on: container)
+    }
+    
+    public func insert(
+        inSchema schema: Schemable.Type? = nil,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> EventLoopFuture<Self> {
+        _insert(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: db, on: container)
+    }
+    
+    ///
+    
+    public func insertNonReturning(
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> EventLoopFuture<Void> {
+        _insertNonReturning(schema: schema, on: db, on: container)
+    }
+    
+    public func insert(
+        inSchema schema: String,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> EventLoopFuture<Self> {
+        _insert(schema: schema, on: db, on: container)
+    }
+    
+    
+    private func _insertNonReturning(
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws {
+        _ = try await buildInsertQuery(schema: schema, items: allColumns(logger: container.logger), returning: false)
+            .execute(on: db, on: container)
+    }
+    
+    private func _insert(
+        schema: String?,
+        on db: DatabaseIdentifier,
+        on container: AnyBridgesObject
+    ) async throws -> Self {
+        guard let first = try await buildInsertQuery(schema: schema, items: allColumns(logger: container.logger), returning: true)
+            .execute(on: db, on: container)
+            .all(decoding: Self.self).first
+        else {
+            throw BridgesError.failedToDecodeWithReturning
+        }
+        return first
+    }
+    
+    // MARK: On connection
+    
+    public func insertNonReturning(inSchema schema: Schemable.Type? = nil, on conn: BridgeConnection) async throws {
+        try await _insertNonReturning(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: conn)
+    }
+    
+    public func insert(inSchema schema: Schemable.Type? = nil, on conn: BridgeConnection) async throws -> Self {
+        try await _insert(schema: schema?.schemaName ?? (Self.self as? Schemable.Type)?.schemaName, on: conn)
+    }
+    
+    ///
+    
+    public func insertNonReturning(inSchema schema: String, on conn: BridgeConnection) async throws {
+        try await _insertNonReturning(schema: schema, on: conn)
+    }
+    
+    public func insert(inSchema schema: String, on conn: BridgeConnection) async throws -> Self {
+        try await _insert(schema: schema, on: conn)
+    }
+    
+    ///
+    
+    private func _insertNonReturning(schema: String?, on conn: BridgeConnection) async throws {
+        let query = buildInsertQuery(schema: schema, items: allColumns(logger: conn.logger), returning: false)
+        try await conn.query(sql: query)
+    }
+    
+    private func _insert(schema: String?, on conn: BridgeConnection) async throws -> Self {
+        let query = buildInsertQuery(schema: schema, items: allColumns(logger: conn.logger), returning: true)
+        guard let first = try await conn.query(sql: query, decoding: Self.self).first
+        else {
+            throw BridgesError.failedToDecodeWithReturning
+        }
+        return first
+    }
 }
 
 // MARK: Batch Insert
@@ -130,6 +224,18 @@ extension Array where Element: Table {
     public func batchInsert(schema: String, on conn: BridgeConnection) -> EventLoopFuture<Void> {
         guard count > 0 else { return conn.eventLoop.future() }
         return conn.query(sql: batchInsertQuery(schema: schema))
+    }
+    
+    public func batchInsert(inSchema schema: Schemable.Type? = nil, on conn: BridgeConnection) async throws {
+        if count > 0 {
+            try await conn.query(sql: batchInsertQuery(schema: schema?.schemaName ?? (Element.self as? Schemable.Type)?.schemaName))
+        }
+    }
+    
+    public func batchInsert(schema: String, on conn: BridgeConnection) async throws {
+        if count > 0 {
+            try await conn.query(sql: batchInsertQuery(schema: schema))
+        }
     }
     
     private func batchInsertQuery(schema: String?) -> SwifQLable {

@@ -40,6 +40,14 @@ extension EventLoopFuture where Value: BridgesRows {
     public func all<R>(decoding type: R.Type) -> EventLoopFuture<[R]> where R: Decodable {
         flatMapThrowing { try $0.all(as: type) }
     }
+    
+    public func first<R>(decoding type: R.Type) async throws -> R? where R: Decodable {
+        try await get().first(as: type)
+    }
+    
+    public func all<R>(decoding type: R.Type) async throws -> [R] where R: Decodable {
+        try await get().all(as: type)
+    }
 }
 
 extension Array: BridgesRows where Element: BridgesRow {

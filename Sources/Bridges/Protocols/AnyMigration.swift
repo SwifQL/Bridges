@@ -13,9 +13,19 @@ public protocol AnyMigration {
     
     static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void>
     static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void>
+    
+    static func prepare(on conn: BridgeConnection) async throws
+    static func revert(on conn: BridgeConnection) async throws
 }
 
 extension AnyMigration {
     public static var name: String { String(describing: Self.self) }
     public static var migrationName: String { name }
+    
+    public static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        conn.eventLoop.future()
+    }
+    public static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
+        conn.eventLoop.future()
+    }
 }

@@ -17,6 +17,10 @@ public protocol Migrator {
     func migrate() -> EventLoopFuture<Void>
     func revertLast() -> EventLoopFuture<Void>
     func revertAll() -> EventLoopFuture<Void>
+    
+    func migrate() async throws
+    func revertLast() async throws
+    func revertAll() async throws
 }
 
 public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
@@ -53,8 +57,16 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
                 createBuilder.checkIfNotExists().execute(on: conn)
             }
             
+            static func prepare(on conn: BridgeConnection) async throws {
+                try await createBuilder.checkIfNotExists().execute(on: conn)
+            }
+            
             static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
                 dropBuilder.execute(on: conn)
+            }
+            
+            static func revert(on conn: BridgeConnection) async throws {
+                try await dropBuilder.execute(on: conn)
             }
         }
     }
@@ -83,8 +95,21 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
                     .execute(on: conn)
             }
             
+            static func prepare(on conn: BridgeConnection) async throws {
+                try await createBuilder
+                    .checkIfNotExists()
+                    .column(\.$id, .bigserial, .primaryKey)
+                    .column(\.$name, .text, .unique)
+                    .column(\.$batch, .int)
+                    .execute(on: conn)
+            }
+            
             static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
                 dropBuilder.checkIfExists().execute(on: conn)
+            }
+            
+            static func revert(on conn: BridgeConnection) async throws {
+                try await dropBuilder.checkIfExists().execute(on: conn)
             }
         }
     }
@@ -96,8 +121,8 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
         return bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) { conn in
             conn.eventLoop.future().flatMap {
                 self.dedicatedSchema
-                    ? BridgesSchema.Create.prepare(on: conn)
-                    : conn.eventLoop.future()
+                ? BridgesSchema.Create.prepare(on: conn)
+                : conn.eventLoop.future()
             }.flatMap {
                 CreateTableBuilder<Migrations>(schema: self.schemaName)
                     .checkIfNotExists()
@@ -126,7 +151,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
             }
         }
     }
-
+    
     public func revertLast() -> EventLoopFuture<Void> {
         bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) {
             self._revertLast(on: $0).transform(to: ())
@@ -137,7 +162,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
         let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
         return conn.query(raw: query, decoding: Migrations.self).flatMap { completedMigrations in
             guard let lastBatch = completedMigrations.map({ $0.batch }).max()
-                else { return conn.eventLoop.future(false) }
+            else { return conn.eventLoop.future(false) }
             let migrationsToRevert = completedMigrations.filter { $0.batch == lastBatch }
             var migrations = self.migrations
             migrations.removeAll { m in migrationsToRevert.contains { $0.name != m.migrationName } }
@@ -173,6 +198,72 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
             }
             revert()
             return promise.futureResult
+        }
+    }
+    
+    ///ASYNC
+    public func migrate() async throws {
+        return try await bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) { conn in
+            
+            if self.dedicatedSchema {
+                try await BridgesSchema.Create.prepare(on: conn)
+            }
+            try await CreateTableBuilder<Migrations>(schema: self.schemaName)
+                .checkIfNotExists()
+                .column(\.$id, .bigserial, .primaryKey)
+                .column(\.$name, .text, .unique)
+                .column(\.$batch, .int)
+                .execute(on: conn)
+            
+            let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
+            let completedMigrations = try await conn.query(raw: query, decoding: Migrations.self)
+            let batch = completedMigrations.map { $0.batch }.max() ?? 0
+            var migrations = self.migrations
+            migrations.removeAll { m in completedMigrations.contains { $0.name == m.migrationName } }
+            for migration in migrations {
+                try await migration.prepare(on: conn)
+                try await SwifQL
+                    .insertInto(self.m.table, fields: self.m.$name, self.m.$batch)
+                    .values
+                    .values(migration.migrationName, batch + 1)
+                    .execute(on: conn)
+            }
+        }
+    }
+    
+    public func revertLast() async throws {
+        _ = try await bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) {
+            try await self._revertLast(on: $0)
+        }
+    }
+    
+    private func _revertLast(on conn: BridgeConnection) async throws -> Bool {
+        let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
+        let completedMigrations = try await conn.query(raw: query, decoding: Migrations.self)
+        
+        guard let lastBatch = completedMigrations.map({ $0.batch }).max() else { return false }
+        let migrationsToRevert = completedMigrations.filter { $0.batch == lastBatch }
+        var migrations = self.migrations
+        migrations.removeAll { m in migrationsToRevert.contains { $0.name != m.migrationName } }
+        for migration in migrations {
+            try await migration.revert(on: conn)
+            try await SwifQL
+                .delete(from: self.m.table)
+                .where(self.m.$name == migration.migrationName)
+                .execute(on: conn)
+        }
+        return true
+    }
+    
+    public func revertAll() async throws {
+        try await bridge.transaction(to: db, on: bridge.eventLoopGroup.next()) { conn in
+            func revert() async throws {
+                let reverted = try await self._revertLast(on: conn)
+                if reverted {
+                    try await revert()
+                }
+            }
+            try await revert()
         }
     }
 }

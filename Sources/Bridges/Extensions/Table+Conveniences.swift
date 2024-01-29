@@ -30,6 +30,22 @@ extension Table {
         return db.first(Self.self, on: on)
     }
     
+    public static func all(on db: DatabaseIdentifier, on: AnyBridgesObject) async throws -> [Self] {
+        guard let db = db as? AnyDatabaseIdentifiable else {
+            error(on.logger)
+            throw BridgesError.nonGenericDatabaseIdentifier
+        }
+        return try await db.all(Self.self, on: on)
+    }
+    
+    public static func first(on db: DatabaseIdentifier, on: AnyBridgesObject) async throws -> Self? {
+        guard let db = db as? AnyDatabaseIdentifiable else {
+            error(on.logger)
+            throw BridgesError.nonGenericDatabaseIdentifier
+        }
+        return try await db.first(Self.self, on: on)
+    }
+    
     public static func query(on db: DatabaseIdentifier, on container: AnyBridgesObject) -> TableQuerySingle<Self> {
         .init(db: db, container: container)
     }
@@ -106,6 +122,36 @@ public class TableQuerySingle<T: Table>: QueryBuilderable {
         let query = SwifQL.delete(from: T.table)
         return db.query(queryParts.appended(to: query), on: container).transform(to: ())
     }
+    
+    public func all() async throws -> [T] {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return try await db.query(queryParts.appended(to: query), on: container).map { try $0.decode(model: T.self) }
+    }
+    
+    public func all<CT>(decoding: CT.Type) async throws -> [CT] where CT: Decodable {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return try await db.query(queryParts.appended(to: query), on: container).map { try $0.decode(model: CT.self) }
+    }
+    
+    public func count() async throws -> Int64 {
+        let query = SwifQL.select(Fn.count(T.table.*) => \CountResult.$count).from(T.table)
+        return try await db.query(queryParts.appended(to: query), on: container).first?.decode(model: CountResult.self).count ?? 0
+    }
+    
+    public func first() async throws -> T? {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return try await db.query(queryParts.appended(to: query), on: container).first?.decode(model: T.self)
+    }
+    
+    public func first<CT>(decoding: CT.Type) async throws -> CT? where CT: Decodable {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return try await db.query(queryParts.appended(to: query), on: container).first?.decode(model: CT.self)
+    }
+    
+    public func delete() async throws {
+        let query = SwifQL.delete(from: T.table)
+        _ = try await db.query(queryParts.appended(to: query), on: container)
+    }
 }
 
 public class TableQueryOnConn<T: Table>: QueryBuilderable {
@@ -143,5 +189,25 @@ public class TableQueryOnConn<T: Table>: QueryBuilderable {
     public func delete() -> EventLoopFuture<Void> {
         let query = SwifQL.delete(from: T.table)
         return conn.query(sql: queryParts.appended(to: query), decoding: T.self).transform(to: ())
+    }
+    
+    public func all() async throws -> [T] {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return try await conn.query(sql: queryParts.appended(to: query), decoding: T.self)
+    }
+    
+    public func count() async throws -> Int64 {
+        let query = SwifQL.select(Fn.count(T.table.*) => \CountResult.$count).from(T.table)
+        return try await conn.query(sql: queryParts.appended(to: query), decoding: CountResult.self).get().first?.count ?? 0
+    }
+    
+    public func first() async throws -> T? {
+        let query = SwifQL.select(T.table.*).from(T.table)
+        return try await conn.query(sql: queryParts.appended(to: query), decoding: T.self).get().first
+    }
+    
+    public func delete() async throws {
+        let query = SwifQL.delete(from: T.table)
+        _ = try await conn.query(sql: queryParts.appended(to: query), decoding: T.self)
     }
 }

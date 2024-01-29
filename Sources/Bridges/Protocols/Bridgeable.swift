@@ -33,14 +33,22 @@ public protocol Bridgeable: AnyBridge {
     func pool(_ db: DatabaseIdentifier, for eventLoop: EventLoop) -> Pool
     
     func db(_ db: DatabaseIdentifier, on eventLoop: EventLoop) -> Database
-                
+    
     func connection<T>(to db: DatabaseIdentifier,
-                                  on eventLoop: EventLoop,
-                                  _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T>
+                       on eventLoop: EventLoop,
+                       _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T>
+    
+    func connection<T>(to db: DatabaseIdentifier,
+                       on eventLoop: EventLoop,
+                       _ closure: @escaping (Connection) async throws -> T) async throws -> T
     
     func transaction<T>(to db: DatabaseIdentifier,
-                                  on eventLoop: EventLoop,
-                                  _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T>
+                        on eventLoop: EventLoop,
+                        _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T>
+    
+    func transaction<T>(to db: DatabaseIdentifier,
+                        on eventLoop: EventLoop,
+                        _ closure: @escaping (Connection) async throws -> T) async throws -> T
     
     func shutdown()
     
