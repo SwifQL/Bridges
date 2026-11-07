@@ -5,11 +5,11 @@
 //  Created by Mihael Isaev on 29.01.2020.
 //
 
-import SwifQL
+import SQL
 
-public class CreateEnumBuilder<Enum: BridgesEnum>: SwifQLable where Enum.RawValue == String {
-    public var parts: [SwifQLPart] {
-        SwifQL
+public class CreateEnumBuilder<Enum: BridgesEnum>: SQLable where Enum.RawValue == String {
+    public var parts: [SQLPart] {
+        SQL
             .create
             .type((Enum.self as? Schemable.Type)?.schemaName ?? nil, Enum.name)
             .as(.enum)

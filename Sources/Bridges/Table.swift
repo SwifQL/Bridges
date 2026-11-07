@@ -6,6 +6,6 @@
 //
 
 import Foundation
-import SwifQL
+import SQL
 
 public typealias BridgeTable = Table

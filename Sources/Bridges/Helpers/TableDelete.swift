@@ -6,11 +6,11 @@
 //
 
 import NIO
-import SwifQL
+import SQL
 
 extension Table {
-    fileprivate func buildDeleteQuery(items: Columns, where: SwifQLable, returning: Bool) -> SwifQLable {
-        let query = SwifQL
+    fileprivate func buildDeleteQuery(items: Columns, where: SQLable, returning: Bool) -> SQLable {
+        let query = SQL
             .delete(from: Self.table)
             .where(`where`)
         guard returning else { return query }

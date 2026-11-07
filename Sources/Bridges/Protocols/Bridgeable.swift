@@ -9,7 +9,7 @@ import Foundation
 import AsyncKit
 import Logging
 import NIO
-import SwifQL
+import SQL
 
 public protocol Bridgeable: AnyBridge {
     associatedtype Source: BridgesPoolSource

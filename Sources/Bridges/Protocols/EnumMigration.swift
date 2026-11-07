@@ -5,7 +5,7 @@
 //  Created by Mihael Isaev on 29.01.2020.
 //
 
-import SwifQL
+import SQL
 
 public protocol EnumMigration: AnyMigration {
     associatedtype Enum: BridgesEnum

@@ -1,4 +1,4 @@
-@_exported import SwifQL
+@_exported import SQL
 @_exported import Foundation
 @_exported import NIO
 @_exported import NIOSSL

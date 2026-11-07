@@ -8,7 +8,7 @@
 import NIO
 import Logging
 
-public protocol AnyBridge: class {
+public protocol AnyBridge: AnyObject {
     static var name: String { get }
     
     static func create(eventLoopGroup: EventLoopGroup, logger: Logger) -> AnyBridge

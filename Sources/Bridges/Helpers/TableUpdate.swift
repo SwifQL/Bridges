@@ -7,11 +7,11 @@
 
 import Logging
 import NIO
-import SwifQL
+import SQL
 
 extension Table {
-    fileprivate func buildUpdateQuery(items: Columns, where: SwifQLable, returning: Bool) -> SwifQLable {
-        let query = SwifQL
+    fileprivate func buildUpdateQuery(items: Columns, where: SQLable, returning: Bool) -> SQLable {
+        let query = SQL
             .update(Self.table)
             .set[items: items.map { Path.Column($0.name) == $0.value }]
             .where(`where`)
@@ -152,7 +152,7 @@ extension Table {
         }
         guard items.0.count > 0 else {
             container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
-            return container.eventLoop.makeSucceededFuture(self)
+            return container.eventLoop.makeSucceededVoidFuture().map { self }
         }
         return buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: true)
             .execute(on: db, on: container)
@@ -168,7 +168,7 @@ extension Table {
     public func updateNonReturning(
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject,
-        where predicates: SwifQLable
+        where predicates: SQLable
     ) -> EventLoopFuture<Void> {
         let items = allColumns(logger: container.logger)
         guard items.count > 0 else {
@@ -183,12 +183,12 @@ extension Table {
     public func update(
         on db: DatabaseIdentifier,
         on container: AnyBridgesObject,
-        where predicates: SwifQLable
+        where predicates: SQLable
     ) -> EventLoopFuture<Self> {
         let items = allColumns(logger: container.logger)
         guard items.count > 0 else {
             container.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
-            return container.eventLoop.makeSucceededFuture(self)
+            return container.eventLoop.makeSucceededVoidFuture().map { self }
         }
         return buildUpdateQuery(items: items, where: predicates, returning: true)
             .execute(on: db, on: container)
@@ -321,7 +321,7 @@ extension Table {
         }
         guard items.0.count > 0 else {
             conn.logger.debug("\(Self.tableName) update has been skipped cause nothing to update")
-            return conn.eventLoop.makeSucceededFuture(self)
+            return conn.eventLoop.makeSucceededVoidFuture().map { self }
         }
         let query = buildUpdateQuery(items: items.0, where: items.1 == items.2, returning: true)
         return conn.query(sql: query, decoding: Self.self).flatMapThrowing { rows in
@@ -332,7 +332,7 @@ extension Table {
     
     ///
     
-    public func update(on conn: BridgeConnection, where predicates: SwifQLable) -> EventLoopFuture<Void> {
+    public func update(on conn: BridgeConnection, where predicates: SQLable) -> EventLoopFuture<Void> {
         conn.query(sql: buildUpdateQuery(items: allColumns(logger: conn.logger), where: predicates, returning: false))
     }
 }

@@ -106,7 +106,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
                     .column(\.$batch, .int)
                     .execute(on: conn)
             }.flatMap {
-                let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
+                let query = SQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
                 return conn.query(raw: query, decoding: Migrations.self).flatMap { completedMigrations in
                     let batch = completedMigrations.map { $0.batch }.max() ?? 0
                     var migrations = self.migrations
@@ -114,7 +114,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
                     return migrations.map { migration in
                         {
                             migration.prepare(on: conn).flatMap {
-                                SwifQL
+                                SQL
                                     .insertInto(self.m.table, fields: self.m.$name, self.m.$batch)
                                     .values
                                     .values(migration.migrationName, batch + 1)
@@ -134,7 +134,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
     }
     
     private func _revertLast(on conn: BridgeConnection) -> EventLoopFuture<Bool> {
-        let query = SwifQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
+        let query = SQL.select(self.m.table.*).from(self.m.table).prepare(conn.dialect).plain
         return conn.query(raw: query, decoding: Migrations.self).flatMap { completedMigrations in
             guard let lastBatch = completedMigrations.map({ $0.batch }).max()
                 else { return conn.eventLoop.future(false) }
@@ -144,7 +144,7 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
             return migrations.map { migration in
                 {
                     migration.revert(on: conn).flatMap {
-                        SwifQL
+                        SQL
                             .delete(from: self.m.table)
                             .where(self.m.$name == migration.migrationName)
                             .execute(on: conn)
@@ -186,11 +186,11 @@ public class BridgeDatabaseMigrations<B: Bridgeable>: Migrator {
 
 /// Move migrations table from public to bridges schema
 //    let om = Schema<Migrations>("public")
-//    let move = SwifQL
+//    let move = SQL
 //        .insertInto(Migrations.table, fields: \Migrations.$id, \Migrations.$name, \Migrations.$batch)
 //        .select(om.$id, om.$name, om.$batch)
 //        .from(om.table)
-//    let drop = SwifQL.drop.table[any: om.table]
+//    let drop = SQL.drop.table[any: om.table]
 //    return move.execute(on: conn).flatMap {
 //        drop.execute(on: conn)
 //    }

@@ -35,9 +35,9 @@ open class Bridges {
     }
 }
 
-import SwifQL
+import SQL
 
-extension SwifQLable {
+extension SQLable {
     @discardableResult
     public func execute(on conn: BridgeConnection) -> EventLoopFuture<Void> {
         conn.query(raw: prepare(conn.dialect).plain).transform(to: ())

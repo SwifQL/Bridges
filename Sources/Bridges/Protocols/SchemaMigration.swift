@@ -5,7 +5,7 @@
 //  Created by Mihael Isaev on 12.04.2020.
 //
 
-import SwifQL
+import SQL
 
 public protocol SchemaMigration: AnyMigration {
     associatedtype Schema: Schemable

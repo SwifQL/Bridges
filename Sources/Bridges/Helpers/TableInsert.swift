@@ -6,11 +6,11 @@
 //
 
 import NIO
-import SwifQL
+import SQL
 
 extension Table {
-    fileprivate func buildInsertQuery(schema: String?, items: Columns, returning: Bool) -> SwifQLable {
-        let query = SwifQL
+    fileprivate func buildInsertQuery(schema: String?, items: Columns, returning: Bool) -> SQLable {
+        let query = SQL
             .insertInto(
                 Path.Schema(schema).table(Self.tableName),
                 fields: items.map { Path.Column($0.0) }
@@ -132,11 +132,11 @@ extension Array where Element: Table {
         return conn.query(sql: batchInsertQuery(schema: schema))
     }
     
-    private func batchInsertQuery(schema: String?) -> SwifQLable {
-        var data: [String: [SwifQLable]] = [:]
+    private func batchInsertQuery(schema: String?) -> SQLable {
+        var data: [String: [SQLable]] = [:]
         self.forEach { table in
             table.columns.forEach {
-                let value = $0.property.inputValue?.swifQLable ?? SwifQL.default
+                let value = $0.property.inputValue?.swifQLable ?? SQL.default
                 if var d = data[$0.name.label] {
                     d.append(value)
                     data[$0.name.label] = d
@@ -146,7 +146,7 @@ extension Array where Element: Table {
             }
         }
         let columns = data.keys.sorted(by: { $0 > $1 })
-        var values: [[SwifQLable]] = []
+        var values: [[SQLable]] = []
         enumerated().forEach { i, _ in
             columns.enumerated().forEach { n, c in
                 if let v = data[c]?[i] {
@@ -158,7 +158,7 @@ extension Array where Element: Table {
                 }
             }
         }
-        return SwifQL
+        return SQL
             .insertInto(Path.Schema(schema).table(Element.tableName), fields: columns.map { Path.Column($0) })
             .values
             .values(array: values)
