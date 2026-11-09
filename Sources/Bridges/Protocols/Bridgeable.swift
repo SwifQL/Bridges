@@ -9,6 +9,7 @@ import Foundation
 import AsyncKit
 import Logging
 import NIO
+import NIOConcurrencyHelpers
 import SQL
 
 public protocol Bridgeable: AnyBridge {
@@ -22,6 +23,7 @@ public protocol Bridgeable: AnyBridge {
     static var dialect: SQLDialect { get }
     
     var pools: [String: GroupPool] { get set }
+    var poolsLock: NIOLock { get }
     
     var logger: Logger { get }
     var eventLoopGroup: EventLoopGroup { get }
@@ -61,14 +63,18 @@ extension Bridgeable {
         pools[db.key] = pool
         return pool
     }
-    
+
     public func register(_ db: DatabaseIdentifier) {
-        _register(db)
+        poolsLock.withLock {
+            _register(db)
+        }
     }
-    
+
     public func pool(_ db: DatabaseIdentifier, for eventLoop: EventLoop) -> Pool {
-        let pool = pools[db.key] ?? _register(db)
-        return pool.pool(for: eventLoop)
+        let groupPool = poolsLock.withLock {
+            pools[db.key] ?? _register(db)
+        }
+        return groupPool.pool(for: eventLoop)
     }
     
     public func migrations(_ db: DatabaseIdentifier) -> BridgeDatabaseMigrations<Self> {

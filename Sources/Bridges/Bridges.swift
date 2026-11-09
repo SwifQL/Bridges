@@ -8,30 +8,43 @@
 import Foundation
 import Logging
 import NIO
+import NIOConcurrencyHelpers
 
 public struct BridgeWithContext<B: AnyBridge> {
     public let bridge: B
     public let eventLoop: EventLoop
 }
 
-open class Bridges {
-    var bridges: [String: AnyBridge] = [:]
-    
+/// Shared bridge registry. Its mutable registry and logger are protected by `lock`;
+/// concrete bridges protect their own mutable state and use NIO event-loop pools.
+open class Bridges: @unchecked Sendable {
+    private let lock = NIOLock()
+    private var bridgeRegistry: [String: AnyBridge] = [:]
+    private var loggerStorage: Logger
+
     public let eventLoopGroup: EventLoopGroup
-    public var logger: Logger
-    
+
+    public var logger: Logger {
+        get { lock.withLock { loggerStorage } }
+        set { lock.withLock { loggerStorage = newValue } }
+    }
+
     public init(eventLoopGroup: EventLoopGroup, logger: Logger) {
         self.eventLoopGroup = eventLoopGroup
-        self.logger = logger
+        self.loggerStorage = logger
     }
-    
+
     public func bridge<B: AnyBridge>(to type: B.Type, on eventLoop: EventLoop) -> BridgeWithContext<B> {
-        let bridge = bridges[B.name] ?? B.create(eventLoopGroup: eventLoopGroup, logger: logger)
-        if bridges[B.name] == nil { bridges[B.name]  = bridge }
-        guard let castedBridge = bridge as? B else {
-            fatalError("Unable to cast bridge to `\(B.name)`")
+        lock.withLock {
+            let bridge = bridgeRegistry[B.name] ?? B.create(eventLoopGroup: eventLoopGroup, logger: loggerStorage)
+            if bridgeRegistry[B.name] == nil {
+                bridgeRegistry[B.name] = bridge
+            }
+            guard let castedBridge = bridge as? B else {
+                fatalError("Unable to cast bridge to `\(B.name)`")
+            }
+            return BridgeWithContext(bridge: castedBridge, eventLoop: eventLoop)
         }
-        return BridgeWithContext(bridge: castedBridge, eventLoop: eventLoop)
     }
 }
 

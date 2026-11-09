@@ -28,6 +28,7 @@ extension Bridgeable {
     }
     
     public func shutdown() {
-        pools.values.forEach { $0.shutdown() }
+        let registeredPools = poolsLock.withLock { Array(pools.values) }
+        registeredPools.forEach { $0.shutdown() }
     }
 }
