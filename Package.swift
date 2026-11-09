@@ -32,7 +32,7 @@ var deps: [Dep] = []
 deps.append("https://github.com/vapor/async-kit.git", from: "1.0.0", targets: .product(name: "AsyncKit", package: "async-kit"))
 
 // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: .product(name: "NIO", package: "swift-nio"))
+deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: .product(name: "NIO", package: "swift-nio"), .product(name: "NIOConcurrencyHelpers", package: "swift-nio"))
 
 // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
 deps.append("https://github.com/apple/swift-nio-ssl.git", from: "2.0.0", targets: .product(name: "NIOSSL", package: "swift-nio-ssl"))
@@ -40,11 +40,7 @@ deps.append("https://github.com/apple/swift-nio-ssl.git", from: "2.0.0", targets
 // Swift logging API
 deps.append("https://github.com/apple/swift-log.git", from: "1.0.0", targets: .product(name: "Logging", package: "swift-log"))
 
-if localDev {
-    deps.appendLocal("SQL", targets: "SQL")
-} else {
-    deps.append("https://github.com/swiftstream/SQL.git", from: "2.2.0", targets: .product(name: "SQL", package: "SQL"))
-}
+deps.append("https://github.com/swiftstream/SQL.git", from: "2.2.0", targets: .product(name: "SQL", package: "SQL"))
 
 // MARK: - Package
 
