@@ -9,7 +9,7 @@ import NIO
 import Logging
 import SQL
 
-public protocol BridgeConnection {
+public protocol BridgeConnection: Sendable {
     var eventLoop: EventLoop { get }
     var logger: Logger { get }
     var isClosed: Bool { get }
