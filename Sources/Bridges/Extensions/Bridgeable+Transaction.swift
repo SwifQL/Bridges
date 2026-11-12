@@ -8,26 +8,27 @@
 import Foundation
 import NIO
 import Logging
-import SwifQL
+import SQL
 
 extension Bridgeable {
     public func transaction<T>(to db: DatabaseIdentifier,
                                             on eventLoop: EventLoop,
                                             _ closure: @escaping (Connection) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
         connection(to: db, on: eventLoop) { conn in
-            conn.query(raw: SwifQL.begin.semicolon.prepare().plain).transform(to: conn).flatMap { conn in
+            conn.query(raw: SQL.begin.semicolon.prepare().plain).transform(to: conn).flatMap { conn in
                 closure(conn).flatMapError { error in
-                    conn.query(raw: SwifQL.rollback.semicolon.prepare().plain).flatMapThrowing { _ in
+                    conn.query(raw: SQL.rollback.semicolon.prepare().plain).flatMapThrowing { _ in
                         throw error
                     }
                 }.flatMap { v in
-                    conn.query(raw: SwifQL.commit.semicolon.prepare().plain).transform(to: v)
+                    conn.query(raw: SQL.commit.semicolon.prepare().plain).transform(to: v)
                 }
             }
         }
     }
     
     public func shutdown() {
-        pools.values.forEach { $0.shutdown() }
+        let registeredPools = poolsLock.withLock { Array(pools.values) }
+        registeredPools.forEach { $0.shutdown() }
     }
 }

@@ -1,13 +1,13 @@
 //
-//  Dictionary+SwifQLable.swift
+//  Dictionary+SQLable.swift
 //  Bridges
 //
 //  Created by Mihael Isaev on 25.04.2020.
 //
 
 import Foundation
-import SwifQL
+import SQL
 
-extension Dictionary: SwifQLable where Key: Encodable, Value: Encodable {
-    public var parts: [SwifQLPart] { [SwifQLPartUnsafeValue(self)] }
+extension Dictionary: @retroactive RowField, @retroactive SQLable where Key: Encodable, Value: Encodable {
+    public var parts: [SQLPart] { [SQLPartUnsafeValue(self)] }
 }

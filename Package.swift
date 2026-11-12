@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:6.3
 import PackageDescription
 import Foundation
 
@@ -21,9 +21,7 @@ extension Array where Element == Dep {
         append(.init(package: .package(url: url, from: from), targets: targets))
     }
 
-    mutating func append(_ url: String, _ requirement: PackageDescription.Package.Dependency.Requirement, targets: Target.Dependency...) {
-        append(.init(package: .package(url: url, requirement), targets: targets))
-    }
+
 }
 
 // MARK: - Dependencies
@@ -34,7 +32,7 @@ var deps: [Dep] = []
 deps.append("https://github.com/vapor/async-kit.git", from: "1.0.0", targets: .product(name: "AsyncKit", package: "async-kit"))
 
 // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: .product(name: "NIO", package: "swift-nio"))
+deps.append("https://github.com/apple/swift-nio.git", from: "2.2.0", targets: .product(name: "NIO", package: "swift-nio"), .product(name: "NIOConcurrencyHelpers", package: "swift-nio"))
 
 // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
 deps.append("https://github.com/apple/swift-nio-ssl.git", from: "2.0.0", targets: .product(name: "NIOSSL", package: "swift-nio-ssl"))
@@ -42,11 +40,7 @@ deps.append("https://github.com/apple/swift-nio-ssl.git", from: "2.0.0", targets
 // Swift logging API
 deps.append("https://github.com/apple/swift-log.git", from: "1.0.0", targets: .product(name: "Logging", package: "swift-log"))
 
-if localDev {
-    deps.appendLocal("SwifQL", targets: "SwifQL")
-} else {
-    deps.append("https://github.com/SwifQL/SwifQL.git", from: "2.0.0-beta", targets: .product(name: "SwifQL", package: "SwifQL"))
-}
+deps.append("https://github.com/swiftstream/SQL.git", from: "2.2.0", targets: .product(name: "SQL", package: "SQL"))
 
 // MARK: - Package
 
@@ -64,5 +58,6 @@ let package = Package(
         .testTarget(name: "BridgesTests", dependencies: [
             .target(name: "Bridges")
         ]),
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )

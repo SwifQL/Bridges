@@ -1,5 +1,5 @@
 //
-//  SwifQLable+Execute.swift
+//  SQLable+Execute.swift
 //  Bridges
 //
 //  Created by Mihael Isaev on 20.05.2020.
@@ -7,7 +7,7 @@
 
 import Logging
 import NIO
-import SwifQL
+import SQL
 
 public struct BridgesExecutedResult {
     let db: AnyDatabaseIdentifiable
@@ -49,7 +49,7 @@ extension EventLoopFuture where Value == BridgesExecutedResult {
     }
 }
 
-extension SwifQLable {
+extension SQLable {
     public func execute(on db: DatabaseIdentifier, on container: AnyBridgesObject) -> EventLoopFuture<BridgesExecutedResult> {
         guard let db = db as? AnyDatabaseIdentifiable else {
             error(container.logger)

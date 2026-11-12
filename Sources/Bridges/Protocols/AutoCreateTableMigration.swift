@@ -6,7 +6,7 @@
 ////
 //
 //import NIO
-//import SwifQL
+//import SQL
 //
 //public protocol AutoCreateTableMigration: TableMigration {
 //    static var columns: [NewColumn] { get }
@@ -28,11 +28,11 @@
 //    }
 //    
 //    public static func prepare(on conn: BridgeConnection) -> EventLoopFuture<Void> {
-//        let query = SwifQL.create.table.if.not.exists[any: Path.Table(Self.Table.name)].newColumns(columns)
+//        let query = SQL.create.table.if.not.exists[any: Path.Table(Self.Table.name)].newColumns(columns)
 //        return conn.query(raw: query.semicolon.prepare(conn.dialect).plain).transform(to: ())
 //    }
 //    
 //    public static func revert(on conn: BridgeConnection) -> EventLoopFuture<Void> {
-//        conn.query(raw: SwifQL.drop.table.if.exists[any: Path.Table(Self.Table.name)].prepare(conn.dialect).plain).transform(to: ())
+//        conn.query(raw: SQL.drop.table.if.exists[any: Path.Table(Self.Table.name)].prepare(conn.dialect).plain).transform(to: ())
 //    }
 //}

@@ -7,7 +7,7 @@
 //
 
 import NIO
-import SwifQL
+import SQL
 
 extension Table {
     fileprivate func buildUpsertQuery(
@@ -16,8 +16,8 @@ extension Table {
         updateItems: Columns,
         conflictColumn: Path.Column,
         returning: Bool
-    ) -> SwifQLable {
-        var query = SwifQL
+    ) -> SQLable {
+        var query = SQL
             .insertInto(
                 Path.Schema(schema).table(Self.tableName),
                 fields: insertionItems.map { Path.Column($0.0) }
@@ -42,8 +42,8 @@ extension Table {
         updateItems: Columns,
         conflictConstraint: KeyPathLastPath,
         returning: Bool
-    ) -> SwifQLable {
-        let query = SwifQL
+    ) -> SQLable {
+        let query = SQL
             .insertInto(
                 Path.Schema(schema).table(Self.tableName),
                 fields: insertionItems.map { Path.Column($0.0) }

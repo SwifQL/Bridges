@@ -5,9 +5,9 @@
 //  Created by Mihael Isaev on 27.01.2020.
 //
 
-import SwifQL
+import SQL
 
-public protocol BridgesEnum: SwifQLEnum {
+public protocol BridgesEnum: SQLEnum {
     associatedtype Enum = Self
 }
 

@@ -1,6 +1,6 @@
 import XCTest
 @testable import Bridges
-import SwifQL
+import SQL
 
 final class BridgesTests: XCTestCase {
     func testAll() {
@@ -10,7 +10,7 @@ final class BridgesTests: XCTestCase {
         let kp2 = Deleted.carBrand.$id
         XCTAssertEqual("\(kp2)", #""deleted"."CarBrand"."id""#)
         
-        let kp3 = \CarBrand.$name == SwifQLBool(true)
+        let kp3 = \CarBrand.$name == SQLBool(true)
         XCTAssertEqual("\(kp3)", #""hello"."CarBrand"."name" = TRUE"#)
         
         let kp4 = CarBrand.as("cb").$name
@@ -27,14 +27,11 @@ final class BridgesTests: XCTestCase {
         XCTAssertEqual("\(aliasedTable)", #""mooo"."CarBrand" AS "mcb""#)
         
         let cb = TableAlias("cb")
-        let subQueryWithAlias = |SwifQL.select(CarBrand.table.*).from(CarBrand.table)| => cb
+        let subQueryWithAlias = |SQL.select(CarBrand.table.*).from(CarBrand.table)| => cb
         XCTAssertEqual("\(subQueryWithAlias)", #"(SELECT "hello"."CarBrand".* FROM "hello"."CarBrand") as "cb""#)
         XCTAssertEqual("\(cb.day)", #""cb"."day""#)
     }
 
-    static var allTests = [
-        ("testAll", testAll),
-    ]
 }
 
 fileprivate struct Deleted: Schemable {

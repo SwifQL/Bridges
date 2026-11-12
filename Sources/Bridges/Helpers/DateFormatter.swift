@@ -9,7 +9,7 @@ import Foundation
 
 /// Custom DateFormatter to parse dates both with milliseconds and without, with timezone and without
 /// credits to https://stackoverflow.com/questions/48371082/swift-dateformatter-optional-milliseconds
-public class BridgesDateFormatter: DateFormatter {
+public class BridgesDateFormatter: DateFormatter, @unchecked Sendable {
     override public init() {
         super.init()
         setup()

@@ -5,7 +5,7 @@
 //  Created by Mihael Isaev on 27.01.2020.
 //
 
-import SwifQL
+import SQL
 
 public protocol TableMigration: AnyMigration {
     associatedtype Table: BridgeTable

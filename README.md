@@ -13,7 +13,9 @@
 
 # Bridges
 
-Work with Postgres and MySQL with SwifQL through their pure NIO drivers.
+Work with Postgres and MySQL with SQL through their pure NIO drivers.
+
+Requires Swift 6.3 or newer. The SQL dependency is provided by [SwiftStream/SQL](https://github.com/swiftstream/SQL).
 
 ### Support Bridges development by giving a ⭐️
 
@@ -132,12 +134,12 @@ enum Priority: Int, BridgesEnum {
 
 ### Struct
 
-Struct declaration is simlar to Enum: just conform it to `SwifQLCodable`
+Struct declaration is simlar to Enum: just conform it to `SQLCodable`
 
 ```swift
 import Bridges
 
-struct AccountOptions: SwifQLCodable {
+struct AccountOptions: SQLCodable {
     var twoFactorAuthEnabled: Bool
     var lastPasswordChangeDate: Date
 }
@@ -405,7 +407,7 @@ public func configure(_ app: Application) throws {
 
 ## Queries
 
-Use the full power of `SwifQL` to build your queries. Once query is ready execute it on connection.
+Use the full power of `SQL` to build your queries. Once query is ready execute it on connection.
 
 > 💡You can get connection on both `Application` and `Request` objects.
 
@@ -414,7 +416,7 @@ Example for `Application` object e.g. for `configure.swift` file
 // Called before your application initializes.
 public func configure(_ app: Application) throws {
     app.postgres.connection(to: .myDb1) { conn in
-        SwifQL.select(User.table.*).from(User.table).execute(on: conn).all(decoding: User.self).flatMap { rows in
+        SQL.select(User.table.*).from(User.table).execute(on: conn).all(decoding: User.self).flatMap { rows in
             print("yaaay it works and returned \(rows.count) rows!")
         }
     }.whenComplete {
@@ -434,7 +436,7 @@ Example for `Request` object
 func routes(_ app: Application) throws {
     app.get("users") { req -> EventLoopFuture<[User]> in
         req.postgres.connection(to: .myDb1) { conn in
-            SwifQL.select(User.table.*).from(User.table).execute(on: conn).all(decoding: User.self)
+            SQL.select(User.table.*).from(User.table).execute(on: conn).all(decoding: User.self)
         }
     }
 }

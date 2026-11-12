@@ -6,16 +6,16 @@
 //
 
 import Foundation
-import SwifQL
+import SQL
 import Logging
 
 extension Table {
-    typealias Columns = [(name: String, value: SwifQLable, isChanged: Bool)]
+    typealias Columns = [(name: String, value: SQLable, isChanged: Bool)]
     
     func allColumns(logger: Logger) -> Columns {
         columns.compactMap {
             guard let value = $0.property.inputValue?.swifQLable else {
-                logger.debug("⚠️ Skipped column \($0.name) for \(Self.tableName) table cause it doesn't conform to SwifQLable")
+                logger.debug("⚠️ Skipped column \($0.name) for \(Self.tableName) table cause it doesn't conform to SQLable")
                 return nil
             }
             return ($0.name.label, value, $0.property.isChanged)
@@ -26,7 +26,7 @@ extension Table {
         excluding keyColumn: KeyPath<Self, Column>,
         excluding: [KeyPathLastPath] = [],
         logger: Logger
-    ) -> (columns: Columns, columnKey: Path.Column, columnValue: SwifQLable)? {
+    ) -> (columns: Columns, columnKey: Path.Column, columnValue: SQLable)? {
         let items = allColumns(logger: logger)
         let keyColumnName = Self.key(for: keyColumn)
         guard let keyColumnValue = items.first(where: { $0.0 == keyColumnName })?.1 else {
